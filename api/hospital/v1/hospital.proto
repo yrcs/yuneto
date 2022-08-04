@@ -1,0 +1,59 @@
+syntax = "proto3";
+
+package hospital.v1;
+
+import "google/protobuf/empty.proto";
+import "google/protobuf/timestamp.proto";
+import "validate/validate.proto";
+
+option go_package = "github.com/yrcs/yuneto/api/hospital/v1;v1";
+option java_multiple_files = true;
+option java_package = "dev.yuneto.api.hospital.v1";
+option java_outer_classname = "HospitalProto";
+
+service Hospital {
+  rpc AddHospitalSetting(AddHospitalSettingRequest) returns (CommonAddReply);
+  rpc EditHospitalSetting(EditHospitalSettingRequest) returns (CommonEditReply);
+  rpc DeleteHospitalSetting(DeleteHospitalSettingRequest) returns (google.protobuf.Empty);
+  rpc DeleteHospitalSettings(DeleteHospitalSettingsRequest) returns (google.protobuf.Empty);
+}
+
+message AddHospitalSettingRequest {
+  string name = 2 [(validate.rules).string = {min_len: 6, max_len: 30}];
+  string registrationNumber = 3 [(validate.rules).string = {min_len: 18, max_len: 22}];
+  optional string contactPerson = 4 [(validate.rules).string = {min_len: 2, max_len: 6}];
+  optional string contactMobile = 5 [(validate.rules).string.len = 11];
+  optional uint32 locked = 6 [(validate.rules).uint32 = {in: [0,1]}];
+  string apiUrl = 7;
+  string signatureKey = 8;
+}
+
+message EditHospitalSettingRequest {
+  uint64 id = 1;
+  optional string name = 2 [(validate.rules).string = {min_len: 6, max_len: 30}];
+  optional string registrationNumber = 3 [(validate.rules).string = {min_len: 18, max_len: 22}];
+  optional string contactPerson = 4 [(validate.rules).string = {min_len: 2, max_len: 6}];
+  optional string contactMobile = 5 [(validate.rules).string.len = 11];
+  optional uint32 locked = 6 [(validate.rules).uint32 = {in: [0,1]}];
+  optional string apiUrl = 7;
+  optional string signatureKey = 8;
+}
+
+message DeleteHospitalSettingRequest {
+  uint64 id = 1 [(validate.rules).uint64.gt = 0];
+}
+
+message DeleteHospitalSettingsRequest {
+  repeated uint64 ids = 1 [(validate.rules).repeated = { items { uint64 { gt: 0 } }, min_items: 1 }];
+}
+
+message CommonAddReply {
+  uint64 id = 1;
+  google.protobuf.Timestamp createdAt = 2;
+  google.protobuf.Timestamp updatedAt = 3;
+}
+
+message CommonEditReply {
+  uint64 id = 1;
+  google.protobuf.Timestamp updatedAt = 3;
+}

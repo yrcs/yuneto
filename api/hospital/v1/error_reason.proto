@@ -1,0 +1,16 @@
+syntax = "proto3";
+
+package hospital.v1;
+
+option go_package = "github.com/yrcs/yuneto/api/hospital/v1;v1";
+option java_multiple_files = true;
+option java_package = "dev.yuneto.api.hospital.v1";
+option java_outer_classname = "ErrorReasonProto";
+
+enum ErrorReason {
+  HOSPITAL_SETTING_INVALID_DATA_FORMAT = 0;
+  HOSPITAL_SETTING_INVALID_ARGUMENT = 1;
+  HOSPITAL_SETTING_SAME_DATA_EXISTS = 2;
+  HOSPITAL_SETTING_NOT_FOUND = 3;
+  HOSPITAL_SETTING_SYSTEM_ERROR = 4;
+}

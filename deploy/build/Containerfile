@@ -1,0 +1,29 @@
+FROM golang:1.19 AS builder
+
+ARG APP_BASENAME
+
+COPY . /src
+WORKDIR /src/app/${APP_BASENAME}
+
+RUN GOPROXY=https://goproxy.cn make build
+
+FROM debian:stable-slim
+
+ARG APP_BASENAME
+ENV APP_BASENAME=${APP_BASENAME}
+
+RUN apt-get update && apt-get install -y --no-install-recommends \
+		ca-certificates  \
+        netbase \
+        && rm -rf /var/lib/apt/lists/ \
+        && apt-get autoremove -y && apt-get autoclean -y
+
+COPY --from=builder /src/app/${APP_BASENAME}/bin /app
+
+WORKDIR /app
+
+EXPOSE 8000
+EXPOSE 9000
+VOLUME /data/conf
+
+CMD ./$APP_BASENAME -conf /data/conf
