@@ -1,4 +1,4 @@
-package gin
+package middleware
 
 import (
 	"context"

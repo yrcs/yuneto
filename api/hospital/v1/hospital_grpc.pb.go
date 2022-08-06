@@ -8,6 +8,7 @@ package v1
 
 import (
 	context "context"
+	pagination "github.com/yrcs/yuneto/third_party/pagination"
 	grpc "google.golang.org/grpc"
 	codes "google.golang.org/grpc/codes"
 	status "google.golang.org/grpc/status"
@@ -23,6 +24,7 @@ const _ = grpc.SupportPackageIsVersion7
 //
 // For semantics around ctx use and closing/ending streaming RPCs, please refer to https://pkg.go.dev/google.golang.org/grpc/?tab=doc#ClientConn.NewStream.
 type HospitalClient interface {
+	ListHospitalSetting(ctx context.Context, in *pagination.PagingRequest, opts ...grpc.CallOption) (*pagination.PagingReply, error)
 	AddHospitalSetting(ctx context.Context, in *AddHospitalSettingRequest, opts ...grpc.CallOption) (*CommonAddReply, error)
 	EditHospitalSetting(ctx context.Context, in *EditHospitalSettingRequest, opts ...grpc.CallOption) (*CommonEditReply, error)
 	DeleteHospitalSetting(ctx context.Context, in *DeleteHospitalSettingRequest, opts ...grpc.CallOption) (*emptypb.Empty, error)
@@ -35,6 +37,15 @@ type hospitalClient struct {
 
 func NewHospitalClient(cc grpc.ClientConnInterface) HospitalClient {
 	return &hospitalClient{cc}
+}
+
+func (c *hospitalClient) ListHospitalSetting(ctx context.Context, in *pagination.PagingRequest, opts ...grpc.CallOption) (*pagination.PagingReply, error) {
+	out := new(pagination.PagingReply)
+	err := c.cc.Invoke(ctx, "/hospital.v1.Hospital/ListHospitalSetting", in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
 }
 
 func (c *hospitalClient) AddHospitalSetting(ctx context.Context, in *AddHospitalSettingRequest, opts ...grpc.CallOption) (*CommonAddReply, error) {
@@ -77,6 +88,7 @@ func (c *hospitalClient) DeleteHospitalSettings(ctx context.Context, in *DeleteH
 // All implementations must embed UnimplementedHospitalServer
 // for forward compatibility
 type HospitalServer interface {
+	ListHospitalSetting(context.Context, *pagination.PagingRequest) (*pagination.PagingReply, error)
 	AddHospitalSetting(context.Context, *AddHospitalSettingRequest) (*CommonAddReply, error)
 	EditHospitalSetting(context.Context, *EditHospitalSettingRequest) (*CommonEditReply, error)
 	DeleteHospitalSetting(context.Context, *DeleteHospitalSettingRequest) (*emptypb.Empty, error)
@@ -88,6 +100,9 @@ type HospitalServer interface {
 type UnimplementedHospitalServer struct {
 }
 
+func (UnimplementedHospitalServer) ListHospitalSetting(context.Context, *pagination.PagingRequest) (*pagination.PagingReply, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method ListHospitalSetting not implemented")
+}
 func (UnimplementedHospitalServer) AddHospitalSetting(context.Context, *AddHospitalSettingRequest) (*CommonAddReply, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method AddHospitalSetting not implemented")
 }
@@ -111,6 +126,24 @@ type UnsafeHospitalServer interface {
 
 func RegisterHospitalServer(s grpc.ServiceRegistrar, srv HospitalServer) {
 	s.RegisterService(&Hospital_ServiceDesc, srv)
+}
+
+func _Hospital_ListHospitalSetting_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(pagination.PagingRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(HospitalServer).ListHospitalSetting(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/hospital.v1.Hospital/ListHospitalSetting",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(HospitalServer).ListHospitalSetting(ctx, req.(*pagination.PagingRequest))
+	}
+	return interceptor(ctx, in, info, handler)
 }
 
 func _Hospital_AddHospitalSetting_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
@@ -192,6 +225,10 @@ var Hospital_ServiceDesc = grpc.ServiceDesc{
 	ServiceName: "hospital.v1.Hospital",
 	HandlerType: (*HospitalServer)(nil),
 	Methods: []grpc.MethodDesc{
+		{
+			MethodName: "ListHospitalSetting",
+			Handler:    _Hospital_ListHospitalSetting_Handler,
+		},
 		{
 			MethodName: "AddHospitalSetting",
 			Handler:    _Hospital_AddHospitalSetting_Handler,

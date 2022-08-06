@@ -2,16 +2,18 @@ syntax = "proto3";
 
 package hospital.v1;
 
-import "google/protobuf/empty.proto";
-import "google/protobuf/timestamp.proto";
-import "validate/validate.proto";
-
 option go_package = "github.com/yrcs/yuneto/api/hospital/v1;v1";
 option java_multiple_files = true;
 option java_package = "dev.yuneto.api.hospital.v1";
 option java_outer_classname = "HospitalProto";
 
+import "google/protobuf/empty.proto";
+import "google/protobuf/timestamp.proto";
+import "pagination/pagination.proto";
+import "validate/validate.proto";
+
 service Hospital {
+  rpc ListHospitalSetting(pagination.PagingRequest) returns (pagination.PagingReply);
   rpc AddHospitalSetting(AddHospitalSettingRequest) returns (CommonAddReply);
   rpc EditHospitalSetting(EditHospitalSettingRequest) returns (CommonEditReply);
   rpc DeleteHospitalSetting(DeleteHospitalSettingRequest) returns (google.protobuf.Empty);
@@ -29,7 +31,7 @@ message AddHospitalSettingRequest {
 }
 
 message EditHospitalSettingRequest {
-  uint64 id = 1;
+  uint64 id = 1 [(validate.rules).uint64.gt = 0];
   optional string name = 2 [(validate.rules).string = {min_len: 6, max_len: 30}];
   optional string registrationNumber = 3 [(validate.rules).string = {min_len: 18, max_len: 22}];
   optional string contactPerson = 4 [(validate.rules).string = {min_len: 2, max_len: 6}];
@@ -45,6 +47,19 @@ message DeleteHospitalSettingRequest {
 
 message DeleteHospitalSettingsRequest {
   repeated uint64 ids = 1 [(validate.rules).repeated = { items { uint64 { gt: 0 } }, min_items: 1 }];
+}
+
+message HospitalSettingReply {
+  uint64 id = 1;
+  google.protobuf.Timestamp createdAt = 2;
+  google.protobuf.Timestamp updatedAt = 3;
+  string name = 4;
+  string registrationNumber = 5;
+  string contactPerson = 6;
+  string contactMobile = 7;
+  uint32 locked = 8;
+  string apiUrl = 9;
+  string signatureKey = 10;
 }
 
 message CommonAddReply {

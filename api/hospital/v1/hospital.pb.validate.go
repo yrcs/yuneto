@@ -236,7 +236,16 @@ func (m *EditHospitalSettingRequest) validate(all bool) error {
 
 	var errors []error
 
-	// no validation rules for Id
+	if m.GetId() <= 0 {
+		err := EditHospitalSettingRequestValidationError{
+			field:  "Id",
+			reason: "value must be greater than 0",
+		}
+		if !all {
+			return err
+		}
+		errors = append(errors, err)
+	}
 
 	if m.Name != nil {
 
@@ -650,6 +659,182 @@ var _ interface {
 	Cause() error
 	ErrorName() string
 } = DeleteHospitalSettingsRequestValidationError{}
+
+// Validate checks the field values on HospitalSettingReply with the rules
+// defined in the proto definition for this message. If any rules are
+// violated, the first error encountered is returned, or nil if there are no violations.
+func (m *HospitalSettingReply) Validate() error {
+	return m.validate(false)
+}
+
+// ValidateAll checks the field values on HospitalSettingReply with the rules
+// defined in the proto definition for this message. If any rules are
+// violated, the result is a list of violation errors wrapped in
+// HospitalSettingReplyMultiError, or nil if none found.
+func (m *HospitalSettingReply) ValidateAll() error {
+	return m.validate(true)
+}
+
+func (m *HospitalSettingReply) validate(all bool) error {
+	if m == nil {
+		return nil
+	}
+
+	var errors []error
+
+	// no validation rules for Id
+
+	if all {
+		switch v := interface{}(m.GetCreatedAt()).(type) {
+		case interface{ ValidateAll() error }:
+			if err := v.ValidateAll(); err != nil {
+				errors = append(errors, HospitalSettingReplyValidationError{
+					field:  "CreatedAt",
+					reason: "embedded message failed validation",
+					cause:  err,
+				})
+			}
+		case interface{ Validate() error }:
+			if err := v.Validate(); err != nil {
+				errors = append(errors, HospitalSettingReplyValidationError{
+					field:  "CreatedAt",
+					reason: "embedded message failed validation",
+					cause:  err,
+				})
+			}
+		}
+	} else if v, ok := interface{}(m.GetCreatedAt()).(interface{ Validate() error }); ok {
+		if err := v.Validate(); err != nil {
+			return HospitalSettingReplyValidationError{
+				field:  "CreatedAt",
+				reason: "embedded message failed validation",
+				cause:  err,
+			}
+		}
+	}
+
+	if all {
+		switch v := interface{}(m.GetUpdatedAt()).(type) {
+		case interface{ ValidateAll() error }:
+			if err := v.ValidateAll(); err != nil {
+				errors = append(errors, HospitalSettingReplyValidationError{
+					field:  "UpdatedAt",
+					reason: "embedded message failed validation",
+					cause:  err,
+				})
+			}
+		case interface{ Validate() error }:
+			if err := v.Validate(); err != nil {
+				errors = append(errors, HospitalSettingReplyValidationError{
+					field:  "UpdatedAt",
+					reason: "embedded message failed validation",
+					cause:  err,
+				})
+			}
+		}
+	} else if v, ok := interface{}(m.GetUpdatedAt()).(interface{ Validate() error }); ok {
+		if err := v.Validate(); err != nil {
+			return HospitalSettingReplyValidationError{
+				field:  "UpdatedAt",
+				reason: "embedded message failed validation",
+				cause:  err,
+			}
+		}
+	}
+
+	// no validation rules for Name
+
+	// no validation rules for RegistrationNumber
+
+	// no validation rules for ContactPerson
+
+	// no validation rules for ContactMobile
+
+	// no validation rules for Locked
+
+	// no validation rules for ApiUrl
+
+	// no validation rules for SignatureKey
+
+	if len(errors) > 0 {
+		return HospitalSettingReplyMultiError(errors)
+	}
+
+	return nil
+}
+
+// HospitalSettingReplyMultiError is an error wrapping multiple validation
+// errors returned by HospitalSettingReply.ValidateAll() if the designated
+// constraints aren't met.
+type HospitalSettingReplyMultiError []error
+
+// Error returns a concatenation of all the error messages it wraps.
+func (m HospitalSettingReplyMultiError) Error() string {
+	var msgs []string
+	for _, err := range m {
+		msgs = append(msgs, err.Error())
+	}
+	return strings.Join(msgs, "; ")
+}
+
+// AllErrors returns a list of validation violation errors.
+func (m HospitalSettingReplyMultiError) AllErrors() []error { return m }
+
+// HospitalSettingReplyValidationError is the validation error returned by
+// HospitalSettingReply.Validate if the designated constraints aren't met.
+type HospitalSettingReplyValidationError struct {
+	field  string
+	reason string
+	cause  error
+	key    bool
+}
+
+// Field function returns field value.
+func (e HospitalSettingReplyValidationError) Field() string { return e.field }
+
+// Reason function returns reason value.
+func (e HospitalSettingReplyValidationError) Reason() string { return e.reason }
+
+// Cause function returns cause value.
+func (e HospitalSettingReplyValidationError) Cause() error { return e.cause }
+
+// Key function returns key value.
+func (e HospitalSettingReplyValidationError) Key() bool { return e.key }
+
+// ErrorName returns error name.
+func (e HospitalSettingReplyValidationError) ErrorName() string {
+	return "HospitalSettingReplyValidationError"
+}
+
+// Error satisfies the builtin error interface
+func (e HospitalSettingReplyValidationError) Error() string {
+	cause := ""
+	if e.cause != nil {
+		cause = fmt.Sprintf(" | caused by: %v", e.cause)
+	}
+
+	key := ""
+	if e.key {
+		key = "key for "
+	}
+
+	return fmt.Sprintf(
+		"invalid %sHospitalSettingReply.%s: %s%s",
+		key,
+		e.field,
+		e.reason,
+		cause)
+}
+
+var _ error = HospitalSettingReplyValidationError{}
+
+var _ interface {
+	Field() string
+	Reason() string
+	Key() bool
+	Cause() error
+	ErrorName() string
+} = HospitalSettingReplyValidationError{}
 
 // Validate checks the field values on CommonAddReply with the rules defined in
 // the proto definition for this message. If any rules are violated, the first

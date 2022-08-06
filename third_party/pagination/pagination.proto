@@ -1,0 +1,42 @@
+syntax = "proto3";
+
+package pagination;
+
+option go_package = "github.com/yrcs/yuneto/third_party/pagination;pagination";
+option java_multiple_files = true;
+option java_package = "dev.yuneto.third_party.pagination";
+option java_outer_classname = "PaginationProto";
+
+import "google/protobuf/any.proto";
+import "validate/validate.proto";
+
+// 分页排序
+enum Order {
+  // 不排序
+  UNSORTED = 0;
+  // 升序
+  ASC = 1;
+  // 降序
+  DESC = 2;
+}
+
+// 分页通用请求
+message PagingRequest {
+  // 当前页
+  optional uint32 page = 1 [(validate.rules).uint32.gte = 1];
+
+  // 每一页的行数
+  optional uint32 pageSize = 2 [(validate.rules).uint32 = {gte: 1, lte: 1000}];
+
+  // 查询参数
+  map<string, string> query = 3 [(validate.rules).map = {ignore_empty: true, keys: {string: {min_len: 1}}, values: {string: {min_len: 1}}}];
+
+  // 排序
+  map<string, Order> orderBy = 4 [(validate.rules).map = {ignore_empty: true, keys: {string: {min_len: 1}}, values: {enum: {defined_only: true}}}];
+}
+
+// 分页通用结果
+message PagingReply {
+  uint32 total = 1;
+  repeated google.protobuf.Any items = 2;
+}

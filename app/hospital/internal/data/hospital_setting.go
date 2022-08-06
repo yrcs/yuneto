@@ -7,7 +7,9 @@ import (
 	"github.com/bwmarrin/snowflake"
 	"github.com/go-kratos/kratos/v2/log"
 	"github.com/yrcs/yuneto/app/hospital/internal/biz"
-	"github.com/yrcs/yuneto/pkg/orm/gorm/po"
+	p "github.com/yrcs/yuneto/pkg/pagination"
+	"github.com/yrcs/yuneto/pkg/po"
+	"github.com/yrcs/yuneto/third_party/pagination"
 	"gorm.io/gorm"
 )
 
@@ -34,6 +36,33 @@ func NewHospitalSettingRepo(data *Data, logger log.Logger) biz.HospitalSettingRe
 		data: data,
 		log:  log.NewHelper(log.With(logger, "module", "hospital/data/HospitalSettingRepo")),
 	}
+}
+
+func (r *hospitalSettingRepo) List(ctx context.Context, req *pagination.PagingRequest) ([]*biz.HospitalSetting, error) {
+	db := r.data.db.WithContext(ctx)
+
+	var hospitalSettings []HospitalSetting
+	result := db.Scopes(p.Paginate(req)).Find(&hospitalSettings)
+	if err := result.Error; err != nil {
+		return nil, biz.ErrHospitalSettingSystemError.WithCause(err)
+	}
+
+	settings := make([]*biz.HospitalSetting, 0)
+	for _, hs := range hospitalSettings {
+		settings = append(settings, &biz.HospitalSetting{
+			Id:                 hs.Id,
+			CreatedAt:          hs.CreatedAt,
+			UpdatedAt:          hs.UpdatedAt,
+			Name:               hs.Name,
+			RegistrationNumber: hs.RegistrationNumber,
+			ContactPerson:      hs.ContactPerson,
+			ContactMobile:      hs.ContactMobile,
+			Locked:             hs.Locked,
+			ApiUrl:             hs.ApiUrl,
+			SignatureKey:       hs.SignatureKey,
+		})
+	}
+	return settings, nil
 }
 
 func (r *hospitalSettingRepo) Add(ctx context.Context, hs *biz.HospitalSetting) (*biz.HospitalSetting, error) {

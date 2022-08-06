@@ -11,7 +11,7 @@ import (
 	v1 "github.com/yrcs/yuneto/api/hospital/v1"
 	"github.com/yrcs/yuneto/app/hospital/internal/conf"
 	"github.com/yrcs/yuneto/app/hospital/internal/service"
-	mgin "github.com/yrcs/yuneto/pkg/middleware/gin"
+	"github.com/yrcs/yuneto/pkg/middleware"
 )
 
 // NewHTTPServer new a HTTP server.
@@ -31,9 +31,9 @@ func NewHTTPServer(c *conf.Server, hospital *service.HospitalService, logger log
 	r.Use(
 		kgin.Middlewares(
 			recovery.Recovery(),
-			mgin.GinMiddleware(),
+			middleware.GinMiddleware(),
 			logging.Server(logger),
-			mgin.ProtoValidator(),
+			middleware.ProtoValidator(),
 		),
 	)
 

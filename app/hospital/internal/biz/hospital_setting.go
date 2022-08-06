@@ -7,6 +7,7 @@ import (
 	"github.com/go-kratos/kratos/v2/errors"
 	"github.com/go-kratos/kratos/v2/log"
 	v1 "github.com/yrcs/yuneto/api/hospital/v1"
+	"github.com/yrcs/yuneto/third_party/pagination"
 )
 
 var (
@@ -29,6 +30,7 @@ type HospitalSetting struct {
 }
 
 type HospitalSettingRepo interface {
+	List(context.Context, *pagination.PagingRequest) ([]*HospitalSetting, error)
 	Add(context.Context, *HospitalSetting) (*HospitalSetting, error)
 	Edit(context.Context, *HospitalSetting) (*HospitalSetting, error)
 	Delete(context.Context, *HospitalSetting) error
@@ -45,6 +47,10 @@ func NewHospitalSettingUsecase(hsRepo HospitalSettingRepo, logger log.Logger) *H
 		hsRepo: hsRepo,
 		log:    log.NewHelper(log.With(logger, "module", "hospital/biz/HospitalSettingUsecase")),
 	}
+}
+
+func (hsu *HospitalSettingUsecase) List(ctx context.Context, req *pagination.PagingRequest) ([]*HospitalSetting, error) {
+	return hsu.hsRepo.List(ctx, req)
 }
 
 func (hsu *HospitalSettingUsecase) Add(ctx context.Context, hs *HospitalSetting) (*HospitalSetting, error) {

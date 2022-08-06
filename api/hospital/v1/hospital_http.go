@@ -11,7 +11,9 @@ import (
 	"github.com/go-kratos/kratos/v2/transport/http/binding"
 	"google.golang.org/protobuf/types/known/emptypb"
 
+	p "github.com/yrcs/yuneto/pkg/pagination"
 	"github.com/yrcs/yuneto/pkg/result"
+	"github.com/yrcs/yuneto/third_party/pagination"
 )
 
 // This is a compile-time assertion to ensure that this file
@@ -22,7 +24,7 @@ var _ = binding.EncodeURL
 const _ = http.SupportPackageIsVersion1
 
 type HospitalHTTPServer interface {
-	// ListHospitalSetting(context.Context, *ListHospitalSettingRequest) (*HospitalSettingsReply, error)
+	ListHospitalSetting(context.Context, *pagination.PagingRequest) (*pagination.PagingReply, error)
 	AddHospitalSetting(context.Context, *AddHospitalSettingRequest) (*CommonAddReply, error)
 	EditHospitalSetting(context.Context, *EditHospitalSettingRequest) (*CommonEditReply, error)
 	DeleteHospitalSetting(context.Context, *DeleteHospitalSettingRequest) (*emptypb.Empty, error)
@@ -32,7 +34,8 @@ type HospitalHTTPServer interface {
 func RegisterHospitalHTTPServer(r *gin.Engine, srv HospitalHTTPServer) {
 	g := r.Group("/v1/admin/hospital")
 	{
-		// g.GET("/hospitalSettings", ListHospitalSettingHandler(srv))
+		// ?page=1&pageSize=10&query[name]=中山大学孙逸仙纪念医院&query[contact_person]=徐瑞华&orderBy[name]=1&orderBy[id]=2
+		g.GET("/hospitalSettings", ListHospitalSettingHandler(srv))
 		g.POST("/hospitalSettings", AddHospitalSettingHandler(srv))
 		g.PUT("/hospitalSettings/:id", EditHospitalSettingHandler(srv))
 		g.DELETE("/hospitalSettings/:id", DeleteHospitalSettingHandler(srv))
@@ -40,22 +43,27 @@ func RegisterHospitalHTTPServer(r *gin.Engine, srv HospitalHTTPServer) {
 	}
 }
 
-// func ListHospitalSettingHandler(srv HospitalHTTPServer) func(ctx *gin.Context) {
-// 	return func(ctx *gin.Context) {
-// 		var in ListHospitalSettingRequest
-// 		if err := ctx.ShouldBindJSON(&in); err != nil {
-// 			result.Error(ctx, errors.New(400, ErrorReason_HOSPITAL_SETTING_INVALID_ARGUMENT.String(), "参数错误"))
-// 			return
-// 		}
-// 		http.SetOperation(ctx, "/hospital.v1.Hospital/ListHospitalSetting")
-// 		out, err := srv.ListHospitalSetting(ctx, &in)
-// 		if err != nil {
-// 			result.Error(ctx, err)
-// 			return
-// 		}
-// 		result.Result(ctx, out)
-// 	}
-// }, v *validator.Validate
+func ListHospitalSettingHandler(srv HospitalHTTPServer) func(ctx *gin.Context) {
+	return func(ctx *gin.Context) {
+		o := make(map[string]pagination.Order, 0)
+		in := pagination.PagingRequest{OrderBy: o}
+		p.PackPageData(ctx, &in)
+
+		http.SetOperation(ctx, "/hospital.v1.Hospital/ListHospitalSetting")
+		ctx.Set("reason", ErrorReason_HOSPITAL_SETTING_INVALID_ARGUMENT.String())
+		validate := ctx.MustGet("validate").(func(handler middleware.Handler) middleware.Handler)
+		h := validate(func(ctx context.Context, req any) (any, error) {
+			return srv.ListHospitalSetting(ctx, req.(*pagination.PagingRequest))
+		})
+
+		out, err := h(ctx, &in)
+		if err != nil {
+			result.Error(ctx, err)
+			return
+		}
+		result.Result(ctx, out)
+	}
+}
 
 func AddHospitalSettingHandler(srv HospitalHTTPServer) func(ctx *gin.Context) {
 	return func(ctx *gin.Context) {
@@ -83,12 +91,7 @@ func AddHospitalSettingHandler(srv HospitalHTTPServer) func(ctx *gin.Context) {
 
 func EditHospitalSettingHandler(srv HospitalHTTPServer) func(ctx *gin.Context) {
 	return func(ctx *gin.Context) {
-		id, err := strconv.Atoi(ctx.Param("id"))
-		if err != nil {
-			result.Error(ctx, errors.BadRequest(ErrorReason_HOSPITAL_SETTING_INVALID_ARGUMENT.String(), "参数错误").WithCause(err))
-			return
-		}
-
+		id, _ := strconv.Atoi(ctx.Param("id"))
 		in := EditHospitalSettingRequest{Id: uint64(id)}
 		if err := ctx.ShouldBindJSON(&in); err != nil {
 			result.Error(ctx, errors.BadRequest(ErrorReason_HOSPITAL_SETTING_INVALID_DATA_FORMAT.String(), "表单数据格式错误").WithCause(err))
@@ -113,12 +116,7 @@ func EditHospitalSettingHandler(srv HospitalHTTPServer) func(ctx *gin.Context) {
 
 func DeleteHospitalSettingHandler(srv HospitalHTTPServer) func(ctx *gin.Context) {
 	return func(ctx *gin.Context) {
-		id, err := strconv.Atoi(ctx.Param("id"))
-		if err != nil {
-			result.Error(ctx, errors.BadRequest(ErrorReason_HOSPITAL_SETTING_INVALID_ARGUMENT.String(), "参数错误").WithCause(err))
-			return
-		}
-
+		id, _ := strconv.Atoi(ctx.Param("id"))
 		in := DeleteHospitalSettingRequest{Id: uint64(id)}
 		http.SetOperation(ctx, "/hospital.v1.Hospital/DeleteHospitalSetting")
 		ctx.Set("reason", ErrorReason_HOSPITAL_SETTING_INVALID_ARGUMENT.String())

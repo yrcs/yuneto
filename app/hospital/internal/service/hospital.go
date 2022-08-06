@@ -5,9 +5,39 @@ import (
 
 	v1 "github.com/yrcs/yuneto/api/hospital/v1"
 	"github.com/yrcs/yuneto/app/hospital/internal/biz"
+	"github.com/yrcs/yuneto/third_party/pagination"
+	"google.golang.org/protobuf/types/known/anypb"
 	"google.golang.org/protobuf/types/known/emptypb"
 	"google.golang.org/protobuf/types/known/timestamppb"
 )
+
+func (s *HospitalService) ListHospitalSetting(ctx context.Context, req *pagination.PagingRequest) (*pagination.PagingReply, error) {
+	reply, err := s.hsu.List(ctx, req)
+	if err != nil {
+		return nil, err
+	}
+	items := make([]*anypb.Any, 0)
+	for _, hs := range reply {
+		hsr := &v1.HospitalSettingReply{
+			Id:                 hs.Id,
+			CreatedAt:          timestamppb.New(hs.CreatedAt),
+			UpdatedAt:          timestamppb.New(hs.UpdatedAt),
+			Name:               hs.Name,
+			RegistrationNumber: hs.RegistrationNumber,
+			ContactPerson:      hs.ContactPerson,
+			ContactMobile:      hs.ContactMobile,
+			Locked:             uint32(hs.Locked),
+			ApiUrl:             hs.ApiUrl,
+			SignatureKey:       hs.SignatureKey,
+		}
+		hsAny, _ := anypb.New(hsr)
+		items = append(items, hsAny)
+	}
+	return &pagination.PagingReply{
+		Total: uint32(len(reply)),
+		Items: items,
+	}, nil
+}
 
 func (s *HospitalService) AddHospitalSetting(ctx context.Context, req *v1.AddHospitalSettingRequest) (*v1.CommonAddReply, error) {
 	reply, err := s.hsu.Add(ctx, &biz.HospitalSetting{

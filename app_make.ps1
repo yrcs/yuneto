@@ -26,7 +26,7 @@ switch ($stage) {
     Break
   }
 
-  # generate internal pb
+  # generate internal conf.pb.go
   'config' {
     protoc --proto_path=$PWD\internal `
       --proto_path=..\..\third_party `
@@ -35,7 +35,16 @@ switch ($stage) {
     Break
   }
 
-  # generate api pb
+  # generate pagination.pb.go
+  'page' {
+    protoc --proto_path=$PSScriptRoot\third_party `
+      --go_out=paths=source_relative:$PSScriptRoot\third_party `
+      --validate_out=paths=source_relative,lang=go:$PSScriptRoot\third_party `
+      $PSScriptRoot\third_party\pagination\pagination.proto
+    Break
+  }
+
+  # generate api *.pb.go
   'api' {
     protoc --proto_path=$PSScriptRoot\api\$APP_BASENAME `
       --proto_path=$PSScriptRoot\third_party `
