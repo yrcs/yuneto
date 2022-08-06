@@ -32,14 +32,14 @@ type HospitalHTTPServer interface {
 }
 
 func RegisterHospitalHTTPServer(r *gin.Engine, srv HospitalHTTPServer) {
-	g := r.Group("/v1/admin/hospital")
+	g1 := r.Group("/v1/admin/hospital/hospitalSettings")
 	{
-		// ?page=1&pageSize=10&query[name]=中山大学孙逸仙纪念医院&query[contact_person]=徐瑞华&orderBy[name]=1&orderBy[id]=2
-		g.GET("/hospitalSettings", ListHospitalSettingHandler(srv))
-		g.POST("/hospitalSettings", AddHospitalSettingHandler(srv))
-		g.PUT("/hospitalSettings/:id", EditHospitalSettingHandler(srv))
-		g.DELETE("/hospitalSettings/:id", DeleteHospitalSettingHandler(srv))
-		g.DELETE("/hospitalSettings", DeleteHospitalSettingsHandler(srv))
+		// ?page=1&pageSize=10&query[contact_person]=宋尔卫&orderBy[name]=1&orderBy[id]=2
+		g1.GET("", ListHospitalSettingHandler(srv))
+		g1.POST("", AddHospitalSettingHandler(srv))
+		g1.PUT("/:id", EditHospitalSettingHandler(srv))
+		g1.DELETE("/:id", DeleteHospitalSettingHandler(srv))
+		g1.DELETE("", DeleteHospitalSettingsHandler(srv))
 	}
 }
 
@@ -47,13 +47,13 @@ func ListHospitalSettingHandler(srv HospitalHTTPServer) func(ctx *gin.Context) {
 	return func(ctx *gin.Context) {
 		o := make(map[string]pagination.Order, 0)
 		in := pagination.PagingRequest{OrderBy: o}
-		p.PackPageData(ctx, &in)
+		p.PackPagingData(ctx, &in)
 
 		http.SetOperation(ctx, "/hospital.v1.Hospital/ListHospitalSetting")
 		ctx.Set("reason", ErrorReason_HOSPITAL_SETTING_INVALID_ARGUMENT.String())
-		validate := ctx.MustGet("validate").(func(handler middleware.Handler) middleware.Handler)
-		h := validate(func(ctx context.Context, req any) (any, error) {
-			return srv.ListHospitalSetting(ctx, req.(*pagination.PagingRequest))
+		Middleware := ctx.MustGet("Middleware").(func(handler middleware.Handler) middleware.Handler)
+		h := Middleware(func(ctx context.Context, req any) (any, error) {
+			return srv.AddHospitalSetting(ctx, req.(*AddHospitalSettingRequest))
 		})
 
 		out, err := h(ctx, &in)
@@ -75,8 +75,8 @@ func AddHospitalSettingHandler(srv HospitalHTTPServer) func(ctx *gin.Context) {
 
 		http.SetOperation(ctx, "/hospital.v1.Hospital/AddHospitalSetting")
 		ctx.Set("reason", ErrorReason_HOSPITAL_SETTING_INVALID_ARGUMENT.String())
-		validate := ctx.MustGet("validate").(func(handler middleware.Handler) middleware.Handler)
-		h := validate(func(ctx context.Context, req any) (any, error) {
+		Middleware := ctx.MustGet("Middleware").(func(handler middleware.Handler) middleware.Handler)
+		h := Middleware(func(ctx context.Context, req any) (any, error) {
 			return srv.AddHospitalSetting(ctx, req.(*AddHospitalSettingRequest))
 		})
 
@@ -100,9 +100,9 @@ func EditHospitalSettingHandler(srv HospitalHTTPServer) func(ctx *gin.Context) {
 
 		http.SetOperation(ctx, "/hospital.v1.Hospital/EditHospitalSetting")
 		ctx.Set("reason", ErrorReason_HOSPITAL_SETTING_INVALID_ARGUMENT.String())
-		validate := ctx.MustGet("validate").(func(handler middleware.Handler) middleware.Handler)
-		h := validate(func(ctx context.Context, req any) (any, error) {
-			return srv.EditHospitalSetting(ctx, req.(*EditHospitalSettingRequest))
+		Middleware := ctx.MustGet("Middleware").(func(handler middleware.Handler) middleware.Handler)
+		h := Middleware(func(ctx context.Context, req any) (any, error) {
+			return srv.AddHospitalSetting(ctx, req.(*AddHospitalSettingRequest))
 		})
 
 		out, err := h(ctx, &in)
@@ -120,9 +120,9 @@ func DeleteHospitalSettingHandler(srv HospitalHTTPServer) func(ctx *gin.Context)
 		in := DeleteHospitalSettingRequest{Id: uint64(id)}
 		http.SetOperation(ctx, "/hospital.v1.Hospital/DeleteHospitalSetting")
 		ctx.Set("reason", ErrorReason_HOSPITAL_SETTING_INVALID_ARGUMENT.String())
-		validate := ctx.MustGet("validate").(func(handler middleware.Handler) middleware.Handler)
-		h := validate(func(ctx context.Context, req any) (any, error) {
-			return srv.DeleteHospitalSetting(ctx, req.(*DeleteHospitalSettingRequest))
+		Middleware := ctx.MustGet("Middleware").(func(handler middleware.Handler) middleware.Handler)
+		h := Middleware(func(ctx context.Context, req any) (any, error) {
+			return srv.AddHospitalSetting(ctx, req.(*AddHospitalSettingRequest))
 		})
 
 		out, err := h(ctx, &in)
@@ -144,9 +144,9 @@ func DeleteHospitalSettingsHandler(srv HospitalHTTPServer) func(ctx *gin.Context
 
 		http.SetOperation(ctx, "/hospital.v1.Hospital/DeleteHospitalSettings")
 		ctx.Set("reason", ErrorReason_HOSPITAL_SETTING_INVALID_ARGUMENT.String())
-		validate := ctx.MustGet("validate").(func(handler middleware.Handler) middleware.Handler)
-		h := validate(func(ctx context.Context, req any) (any, error) {
-			return srv.DeleteHospitalSettings(ctx, req.(*DeleteHospitalSettingsRequest))
+		Middleware := ctx.MustGet("Middleware").(func(handler middleware.Handler) middleware.Handler)
+		h := Middleware(func(ctx context.Context, req any) (any, error) {
+			return srv.AddHospitalSetting(ctx, req.(*AddHospitalSettingRequest))
 		})
 
 		out, err := h(ctx, &in)

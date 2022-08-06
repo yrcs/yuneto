@@ -2,7 +2,6 @@ package server
 
 import (
 	"github.com/gin-gonic/gin"
-	kgin "github.com/go-kratos/gin"
 	"github.com/go-kratos/kratos/v2/log"
 	"github.com/go-kratos/kratos/v2/middleware/logging"
 	"github.com/go-kratos/kratos/v2/middleware/recovery"
@@ -29,7 +28,7 @@ func NewHTTPServer(c *conf.Server, hospital *service.HospitalService, logger log
 
 	r := gin.Default()
 	r.Use(
-		kgin.Middlewares(
+		middleware.GinMiddlewares(
 			recovery.Recovery(),
 			middleware.GinMiddleware(),
 			logging.Server(logger),

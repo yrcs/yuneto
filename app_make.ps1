@@ -112,9 +112,11 @@ switch ($stage) {
     Write-Host "init`t`t`t`t" -ForegroundColor DarkGreen -NoNewline
     Write-Host "init env"
     Write-Host "config`t`t`t`t" -ForegroundColor DarkGreen -NoNewline
-    Write-Host "generate config pb.go"
+    Write-Host "generate internal conf.pb.go"
+    Write-Host "page`t`t`t`t" -ForegroundColor DarkGreen -NoNewline
+    Write-Host "generate pagination.pb.go"
     Write-Host "api`t`t`t`t" -ForegroundColor DarkGreen -NoNewline
-    Write-Host "generate api pb.go"
+    Write-Host "generate api *.pb.go"
     Write-Host "wire`t`t`t`t" -ForegroundColor DarkGreen -NoNewline
     Write-Host "generate wire_gen.go"
     Write-Host "test`t`t`t`t" -ForegroundColor DarkGreen -NoNewline

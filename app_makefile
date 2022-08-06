@@ -20,15 +20,23 @@ init:
 	go install github.com/go-kratos/kratos/cmd/protoc-gen-go-http/v2@latest
 
 .PHONY: config
-# generate config pb.go
+# generate internal conf.pb.go
 config:
 	protoc --proto_path=. \
 	--proto_path=../../third_party \
 	--go_out=paths=source_relative:. \
 	$(INTERNAL_PROTO_FILES)
 
+.PHONY: page
+# generate pagination.pb.go
+page:
+	protoc --proto_path=../../third_party \
+	--go_out=paths=source_relative:../../third_party \
+	--validate_out=paths=source_relative,lang=go:../../third_party \
+	../../third_party/third_party/pagination/pagination.proto
+
 .PHONY: api
-# generate api pb.go
+# generate api *.pb.go
 api:
 	cd ../../api/$(APP_BASENAME) && protoc --proto_path=. \
 	--proto_path=../../third_party \

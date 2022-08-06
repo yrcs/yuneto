@@ -8,7 +8,7 @@ import (
 	"gorm.io/gorm"
 )
 
-func PackPageData(ctx *gin.Context, req *pagination.PagingRequest) {
+func PackPagingData(ctx *gin.Context, req *pagination.PagingRequest) {
 	pInt, _ := strconv.Atoi(ctx.DefaultQuery("page", "1"))
 	psInt, _ := strconv.Atoi(ctx.DefaultQuery("pageSize", "1000"))
 	page := uint32(pInt)
@@ -31,11 +31,11 @@ func PackPageData(ctx *gin.Context, req *pagination.PagingRequest) {
 
 func Paginate(req *pagination.PagingRequest) func(db *gorm.DB) *gorm.DB {
 	return func(db *gorm.DB) *gorm.DB {
-		offset := (req.GetPage() - 1) * req.GetPageSize()
-		db = db.Where(req.GetQuery())
+		db = db.Where("deleted_at IS NULL").Where(req.GetQuery())
 		for k, v := range req.OrderBy {
 			db = db.Order(k + " " + pagination.Order_name[int32(v.Number())])
 		}
-		return db.Offset(int(offset)).Limit(int(req.GetPageSize()))
+		offset := (req.GetPage() - 1) * req.GetPageSize()
+		return db.Limit(int(req.GetPageSize())).Offset(int(offset))
 	}
 }
