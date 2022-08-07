@@ -96,3 +96,14 @@ func (s *HospitalService) DeleteHospitalSettings(ctx context.Context, req *v1.De
 	}
 	return nil, nil
 }
+
+func (s *HospitalService) LockHospitalSetting(ctx context.Context, req *v1.LockHospitalSettingRequest) (*emptypb.Empty, error) {
+	err := s.hsu.Lock(ctx, &biz.HospitalSetting{
+		Id:     req.GetId(),
+		Locked: uint8(req.GetLocked()),
+	})
+	if err != nil {
+		return nil, err
+	}
+	return nil, nil
+}

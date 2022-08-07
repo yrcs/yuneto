@@ -660,6 +660,135 @@ var _ interface {
 	ErrorName() string
 } = DeleteHospitalSettingsRequestValidationError{}
 
+// Validate checks the field values on LockHospitalSettingRequest with the
+// rules defined in the proto definition for this message. If any rules are
+// violated, the first error encountered is returned, or nil if there are no violations.
+func (m *LockHospitalSettingRequest) Validate() error {
+	return m.validate(false)
+}
+
+// ValidateAll checks the field values on LockHospitalSettingRequest with the
+// rules defined in the proto definition for this message. If any rules are
+// violated, the result is a list of violation errors wrapped in
+// LockHospitalSettingRequestMultiError, or nil if none found.
+func (m *LockHospitalSettingRequest) ValidateAll() error {
+	return m.validate(true)
+}
+
+func (m *LockHospitalSettingRequest) validate(all bool) error {
+	if m == nil {
+		return nil
+	}
+
+	var errors []error
+
+	if m.GetId() <= 0 {
+		err := LockHospitalSettingRequestValidationError{
+			field:  "Id",
+			reason: "value must be greater than 0",
+		}
+		if !all {
+			return err
+		}
+		errors = append(errors, err)
+	}
+
+	if _, ok := _LockHospitalSettingRequest_Locked_InLookup[m.GetLocked()]; !ok {
+		err := LockHospitalSettingRequestValidationError{
+			field:  "Locked",
+			reason: "value must be in list [0 1]",
+		}
+		if !all {
+			return err
+		}
+		errors = append(errors, err)
+	}
+
+	if len(errors) > 0 {
+		return LockHospitalSettingRequestMultiError(errors)
+	}
+
+	return nil
+}
+
+// LockHospitalSettingRequestMultiError is an error wrapping multiple
+// validation errors returned by LockHospitalSettingRequest.ValidateAll() if
+// the designated constraints aren't met.
+type LockHospitalSettingRequestMultiError []error
+
+// Error returns a concatenation of all the error messages it wraps.
+func (m LockHospitalSettingRequestMultiError) Error() string {
+	var msgs []string
+	for _, err := range m {
+		msgs = append(msgs, err.Error())
+	}
+	return strings.Join(msgs, "; ")
+}
+
+// AllErrors returns a list of validation violation errors.
+func (m LockHospitalSettingRequestMultiError) AllErrors() []error { return m }
+
+// LockHospitalSettingRequestValidationError is the validation error returned
+// by LockHospitalSettingRequest.Validate if the designated constraints aren't met.
+type LockHospitalSettingRequestValidationError struct {
+	field  string
+	reason string
+	cause  error
+	key    bool
+}
+
+// Field function returns field value.
+func (e LockHospitalSettingRequestValidationError) Field() string { return e.field }
+
+// Reason function returns reason value.
+func (e LockHospitalSettingRequestValidationError) Reason() string { return e.reason }
+
+// Cause function returns cause value.
+func (e LockHospitalSettingRequestValidationError) Cause() error { return e.cause }
+
+// Key function returns key value.
+func (e LockHospitalSettingRequestValidationError) Key() bool { return e.key }
+
+// ErrorName returns error name.
+func (e LockHospitalSettingRequestValidationError) ErrorName() string {
+	return "LockHospitalSettingRequestValidationError"
+}
+
+// Error satisfies the builtin error interface
+func (e LockHospitalSettingRequestValidationError) Error() string {
+	cause := ""
+	if e.cause != nil {
+		cause = fmt.Sprintf(" | caused by: %v", e.cause)
+	}
+
+	key := ""
+	if e.key {
+		key = "key for "
+	}
+
+	return fmt.Sprintf(
+		"invalid %sLockHospitalSettingRequest.%s: %s%s",
+		key,
+		e.field,
+		e.reason,
+		cause)
+}
+
+var _ error = LockHospitalSettingRequestValidationError{}
+
+var _ interface {
+	Field() string
+	Reason() string
+	Key() bool
+	Cause() error
+	ErrorName() string
+} = LockHospitalSettingRequestValidationError{}
+
+var _LockHospitalSettingRequest_Locked_InLookup = map[uint32]struct{}{
+	0: {},
+	1: {},
+}
+
 // Validate checks the field values on HospitalSettingReply with the rules
 // defined in the proto definition for this message. If any rules are
 // violated, the first error encountered is returned, or nil if there are no violations.

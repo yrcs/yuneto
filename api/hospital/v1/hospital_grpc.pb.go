@@ -29,6 +29,7 @@ type HospitalClient interface {
 	EditHospitalSetting(ctx context.Context, in *EditHospitalSettingRequest, opts ...grpc.CallOption) (*CommonEditReply, error)
 	DeleteHospitalSetting(ctx context.Context, in *DeleteHospitalSettingRequest, opts ...grpc.CallOption) (*emptypb.Empty, error)
 	DeleteHospitalSettings(ctx context.Context, in *DeleteHospitalSettingsRequest, opts ...grpc.CallOption) (*emptypb.Empty, error)
+	LockHospitalSetting(ctx context.Context, in *LockHospitalSettingRequest, opts ...grpc.CallOption) (*emptypb.Empty, error)
 }
 
 type hospitalClient struct {
@@ -84,6 +85,15 @@ func (c *hospitalClient) DeleteHospitalSettings(ctx context.Context, in *DeleteH
 	return out, nil
 }
 
+func (c *hospitalClient) LockHospitalSetting(ctx context.Context, in *LockHospitalSettingRequest, opts ...grpc.CallOption) (*emptypb.Empty, error) {
+	out := new(emptypb.Empty)
+	err := c.cc.Invoke(ctx, "/hospital.v1.Hospital/LockHospitalSetting", in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
 // HospitalServer is the server API for Hospital service.
 // All implementations must embed UnimplementedHospitalServer
 // for forward compatibility
@@ -93,6 +103,7 @@ type HospitalServer interface {
 	EditHospitalSetting(context.Context, *EditHospitalSettingRequest) (*CommonEditReply, error)
 	DeleteHospitalSetting(context.Context, *DeleteHospitalSettingRequest) (*emptypb.Empty, error)
 	DeleteHospitalSettings(context.Context, *DeleteHospitalSettingsRequest) (*emptypb.Empty, error)
+	LockHospitalSetting(context.Context, *LockHospitalSettingRequest) (*emptypb.Empty, error)
 	mustEmbedUnimplementedHospitalServer()
 }
 
@@ -114,6 +125,9 @@ func (UnimplementedHospitalServer) DeleteHospitalSetting(context.Context, *Delet
 }
 func (UnimplementedHospitalServer) DeleteHospitalSettings(context.Context, *DeleteHospitalSettingsRequest) (*emptypb.Empty, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method DeleteHospitalSettings not implemented")
+}
+func (UnimplementedHospitalServer) LockHospitalSetting(context.Context, *LockHospitalSettingRequest) (*emptypb.Empty, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method LockHospitalSetting not implemented")
 }
 func (UnimplementedHospitalServer) mustEmbedUnimplementedHospitalServer() {}
 
@@ -218,6 +232,24 @@ func _Hospital_DeleteHospitalSettings_Handler(srv interface{}, ctx context.Conte
 	return interceptor(ctx, in, info, handler)
 }
 
+func _Hospital_LockHospitalSetting_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(LockHospitalSettingRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(HospitalServer).LockHospitalSetting(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/hospital.v1.Hospital/LockHospitalSetting",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(HospitalServer).LockHospitalSetting(ctx, req.(*LockHospitalSettingRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
 // Hospital_ServiceDesc is the grpc.ServiceDesc for Hospital service.
 // It's only intended for direct use with grpc.RegisterService,
 // and not to be introspected or modified (even as a copy)
@@ -244,6 +276,10 @@ var Hospital_ServiceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "DeleteHospitalSettings",
 			Handler:    _Hospital_DeleteHospitalSettings_Handler,
+		},
+		{
+			MethodName: "LockHospitalSetting",
+			Handler:    _Hospital_LockHospitalSetting_Handler,
 		},
 	},
 	Streams:  []grpc.StreamDesc{},

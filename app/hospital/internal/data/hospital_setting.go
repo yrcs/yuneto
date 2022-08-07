@@ -145,3 +145,21 @@ func (r *hospitalSettingRepo) DeleteInBatches(ctx context.Context, ids []uint64)
 	}
 	return nil
 }
+
+func (r *hospitalSettingRepo) Lock(ctx context.Context, hs *biz.HospitalSetting) error {
+	db := r.data.db.WithContext(ctx)
+	var hospitalSetting HospitalSetting
+	result := db.Where("id = ?", hs.Id).First(&hospitalSetting)
+	if err := result.Error; err != nil {
+		if errors.Is(err, gorm.ErrRecordNotFound) {
+			return biz.ErrHospitalSettingNotFound.WithCause(err)
+		}
+		return biz.ErrHospitalSettingSystemError.WithCause(err)
+	}
+	result = db.Model(&hospitalSetting).Updates(
+		&HospitalSetting{Locked: hs.Locked})
+	if err := result.Error; err != nil {
+		return biz.ErrHospitalSettingSystemError.WithCause(err)
+	}
+	return nil
+}

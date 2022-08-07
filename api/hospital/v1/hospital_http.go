@@ -29,6 +29,7 @@ type HospitalHTTPServer interface {
 	EditHospitalSetting(context.Context, *EditHospitalSettingRequest) (*CommonEditReply, error)
 	DeleteHospitalSetting(context.Context, *DeleteHospitalSettingRequest) (*emptypb.Empty, error)
 	DeleteHospitalSettings(context.Context, *DeleteHospitalSettingsRequest) (*emptypb.Empty, error)
+	LockHospitalSetting(context.Context, *LockHospitalSettingRequest) (*emptypb.Empty, error)
 }
 
 func RegisterHospitalHTTPServer(r *gin.Engine, srv HospitalHTTPServer) {
@@ -40,6 +41,7 @@ func RegisterHospitalHTTPServer(r *gin.Engine, srv HospitalHTTPServer) {
 		g1.PUT("/:id", EditHospitalSettingHandler(srv))
 		g1.DELETE("/:id", DeleteHospitalSettingHandler(srv))
 		g1.DELETE("", DeleteHospitalSettingsHandler(srv))
+		g1.PUT("/:id/:locked", LockHospitalSettingHandler(srv))
 	}
 }
 
@@ -147,6 +149,27 @@ func DeleteHospitalSettingsHandler(srv HospitalHTTPServer) func(ctx *gin.Context
 		Middleware := ctx.MustGet("Middleware").(func(handler middleware.Handler) middleware.Handler)
 		h := Middleware(func(ctx context.Context, req any) (any, error) {
 			return srv.AddHospitalSetting(ctx, req.(*AddHospitalSettingRequest))
+		})
+
+		out, err := h(ctx, &in)
+		if err != nil {
+			result.Error(ctx, err)
+			return
+		}
+		result.Result(ctx, out)
+	}
+}
+
+func LockHospitalSettingHandler(srv HospitalHTTPServer) func(ctx *gin.Context) {
+	return func(ctx *gin.Context) {
+		id, _ := strconv.Atoi(ctx.Param("id"))
+		locked, _ := strconv.Atoi(ctx.Param("locked"))
+		in := LockHospitalSettingRequest{Id: uint64(id), Locked: uint32(locked)}
+		http.SetOperation(ctx, "/hospital.v1.Hospital/LockHospitalSetting")
+		ctx.Set("reason", ErrorReason_HOSPITAL_SETTING_INVALID_ARGUMENT.String())
+		Middleware := ctx.MustGet("Middleware").(func(handler middleware.Handler) middleware.Handler)
+		h := Middleware(func(ctx context.Context, req any) (any, error) {
+			return srv.LockHospitalSetting(ctx, req.(*LockHospitalSettingRequest))
 		})
 
 		out, err := h(ctx, &in)

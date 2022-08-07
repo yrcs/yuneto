@@ -18,6 +18,7 @@ service Hospital {
   rpc EditHospitalSetting(EditHospitalSettingRequest) returns (CommonEditReply);
   rpc DeleteHospitalSetting(DeleteHospitalSettingRequest) returns (google.protobuf.Empty);
   rpc DeleteHospitalSettings(DeleteHospitalSettingsRequest) returns (google.protobuf.Empty);
+  rpc LockHospitalSetting(LockHospitalSettingRequest) returns (google.protobuf.Empty);
 }
 
 message AddHospitalSettingRequest {
@@ -47,6 +48,11 @@ message DeleteHospitalSettingRequest {
 
 message DeleteHospitalSettingsRequest {
   repeated uint64 ids = 1 [(validate.rules).repeated = { items { uint64 { gt: 0 } }, min_items: 1 }];
+}
+
+message LockHospitalSettingRequest {
+  uint64 id = 1 [(validate.rules).uint64.gt = 0];
+  uint32 locked = 6 [(validate.rules).uint32 = {in: [0,1]}];
 }
 
 message HospitalSettingReply {
