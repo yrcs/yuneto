@@ -15,10 +15,10 @@ type validator interface {
 func ProtoValidator() middleware.Middleware {
 	return func(handler middleware.Handler) middleware.Handler {
 		return func(ctx context.Context, req interface{}) (reply interface{}, err error) {
-			if executed := ctx.Value("ProtoValidatorNextExecutedOnce"); executed == nil {
+			if executed := ctx.Value("ProtoValidatorExecutedOnce"); executed == nil {
 				ginCtx, _ := kgin.FromGinContext(ctx)
-				ginCtx.Set("ProtoValidatorNextExecutedOnce", true)
-				ginCtx.Next()
+				ginCtx.Set("ProtoValidatorExecutedOnce", true)
+				return handler(ctx, req)
 			}
 			if v, ok := req.(validator); ok {
 				if err := v.Validate(); err != nil {

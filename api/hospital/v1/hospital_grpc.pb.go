@@ -29,7 +29,7 @@ type HospitalClient interface {
 	EditHospitalSetting(ctx context.Context, in *EditHospitalSettingRequest, opts ...grpc.CallOption) (*CommonEditReply, error)
 	DeleteHospitalSetting(ctx context.Context, in *DeleteHospitalSettingRequest, opts ...grpc.CallOption) (*emptypb.Empty, error)
 	DeleteHospitalSettings(ctx context.Context, in *DeleteHospitalSettingsRequest, opts ...grpc.CallOption) (*emptypb.Empty, error)
-	LockHospitalSetting(ctx context.Context, in *LockHospitalSettingRequest, opts ...grpc.CallOption) (*emptypb.Empty, error)
+	LockHospitalSetting(ctx context.Context, in *LockHospitalSettingRequest, opts ...grpc.CallOption) (*CommonEditReply, error)
 }
 
 type hospitalClient struct {
@@ -85,8 +85,8 @@ func (c *hospitalClient) DeleteHospitalSettings(ctx context.Context, in *DeleteH
 	return out, nil
 }
 
-func (c *hospitalClient) LockHospitalSetting(ctx context.Context, in *LockHospitalSettingRequest, opts ...grpc.CallOption) (*emptypb.Empty, error) {
-	out := new(emptypb.Empty)
+func (c *hospitalClient) LockHospitalSetting(ctx context.Context, in *LockHospitalSettingRequest, opts ...grpc.CallOption) (*CommonEditReply, error) {
+	out := new(CommonEditReply)
 	err := c.cc.Invoke(ctx, "/hospital.v1.Hospital/LockHospitalSetting", in, out, opts...)
 	if err != nil {
 		return nil, err
@@ -103,7 +103,7 @@ type HospitalServer interface {
 	EditHospitalSetting(context.Context, *EditHospitalSettingRequest) (*CommonEditReply, error)
 	DeleteHospitalSetting(context.Context, *DeleteHospitalSettingRequest) (*emptypb.Empty, error)
 	DeleteHospitalSettings(context.Context, *DeleteHospitalSettingsRequest) (*emptypb.Empty, error)
-	LockHospitalSetting(context.Context, *LockHospitalSettingRequest) (*emptypb.Empty, error)
+	LockHospitalSetting(context.Context, *LockHospitalSettingRequest) (*CommonEditReply, error)
 	mustEmbedUnimplementedHospitalServer()
 }
 
@@ -126,7 +126,7 @@ func (UnimplementedHospitalServer) DeleteHospitalSetting(context.Context, *Delet
 func (UnimplementedHospitalServer) DeleteHospitalSettings(context.Context, *DeleteHospitalSettingsRequest) (*emptypb.Empty, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method DeleteHospitalSettings not implemented")
 }
-func (UnimplementedHospitalServer) LockHospitalSetting(context.Context, *LockHospitalSettingRequest) (*emptypb.Empty, error) {
+func (UnimplementedHospitalServer) LockHospitalSetting(context.Context, *LockHospitalSettingRequest) (*CommonEditReply, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method LockHospitalSetting not implemented")
 }
 func (UnimplementedHospitalServer) mustEmbedUnimplementedHospitalServer() {}

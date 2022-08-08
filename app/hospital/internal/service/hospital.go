@@ -34,7 +34,7 @@ func (s *HospitalService) ListHospitalSetting(ctx context.Context, req *paginati
 		items = append(items, hsAny)
 	}
 	return &pagination.PagingReply{
-		Total: uint32(len(reply)),
+		Total: uint32(len(items)),
 		Items: items,
 	}, nil
 }
@@ -97,13 +97,16 @@ func (s *HospitalService) DeleteHospitalSettings(ctx context.Context, req *v1.De
 	return nil, nil
 }
 
-func (s *HospitalService) LockHospitalSetting(ctx context.Context, req *v1.LockHospitalSettingRequest) (*emptypb.Empty, error) {
-	err := s.hsu.Lock(ctx, &biz.HospitalSetting{
+func (s *HospitalService) LockHospitalSetting(ctx context.Context, req *v1.LockHospitalSettingRequest) (*v1.CommonEditReply, error) {
+	reply, err := s.hsu.Lock(ctx, &biz.HospitalSetting{
 		Id:     req.GetId(),
 		Locked: uint8(req.GetLocked()),
 	})
 	if err != nil {
 		return nil, err
 	}
-	return nil, nil
+	return &v1.CommonEditReply{
+		Id:        reply.Id,
+		UpdatedAt: timestamppb.New(reply.UpdatedAt),
+	}, nil
 }

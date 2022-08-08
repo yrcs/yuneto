@@ -16,4 +16,4 @@ kratos run
 
 Use `make` (or `.\make.ps1` on Windows) to build project. Type `make help` (or `.\make.ps1 help` on Windows) to show usage details.
 
-This project uses mono-repo for cross-project components sharing. If you want to `make` multiple projects at a time, you should `cd yuneto` first, and then execute `make ${command}`. If you just want to `make` one project at a time, you need to enter the directory of this project first, and then execute `make ${command}`. eg: `cd yuneto/app/hospital` , `make api` .
+This project uses **Monorepo** for cross-project packages sharing. If you want to `make` multiple projects at a time, you should `cd yuneto` first, and then execute `make ${command}`. If you just want to `make` one project at a time, you need to enter the directory of this project first, and then execute `make ${command}`. eg: `cd yuneto/app/hospital` , `make api` .

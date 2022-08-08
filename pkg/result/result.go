@@ -1,14 +1,13 @@
 package result
 
 import (
+	"fmt"
 	"net/http"
-	"strings"
 
 	"github.com/gin-gonic/gin"
 	"github.com/go-kratos/kratos/v2/errors"
 	thttp "github.com/go-kratos/kratos/v2/transport/http"
 	httpstatus "github.com/go-kratos/kratos/v2/transport/http/status"
-	"github.com/google/uuid"
 	"google.golang.org/genproto/googleapis/rpc/errdetails"
 	"google.golang.org/grpc/status"
 	"google.golang.org/protobuf/types/known/emptypb"
@@ -31,28 +30,25 @@ func fromError(err error) *httpError {
 	if err == nil {
 		return nil
 	}
-	requestid := strings.ToUpper(uuid.NewString())
 	if se := new(errors.Error); errors.As(err, &se) {
 		cause := ""
 		if causeErr := se.Unwrap(); causeErr != nil {
 			cause = causeErr.Error()
 		}
 		return &httpError{
-			Code:      se.Code,
-			Requestid: requestid,
-			Reason:    se.Reason,
-			Message:   se.Message,
-			Metadata:  se.Metadata,
-			Cause:     cause,
+			Code:     se.Code,
+			Reason:   se.Reason,
+			Message:  se.Message,
+			Metadata: se.Metadata,
+			Cause:    cause,
 		}
 	}
 	gs, ok := status.FromError(err)
 	if !ok {
 		return &httpError{
-			Code:      errors.UnknownCode,
-			Requestid: requestid,
-			Reason:    errors.UnknownReason,
-			Message:   err.Error(),
+			Code:    errors.UnknownCode,
+			Reason:  errors.UnknownReason,
+			Message: err.Error(),
 		}
 	}
 	ret := errors.New(
@@ -68,11 +64,10 @@ func fromError(err error) *httpError {
 		}
 	}
 	return &httpError{
-		Code:      ret.Code,
-		Requestid: requestid,
-		Reason:    ret.Reason,
-		Message:   ret.Message,
-		Metadata:  ret.Metadata,
+		Code:     ret.Code,
+		Reason:   ret.Reason,
+		Message:  ret.Message,
+		Metadata: ret.Metadata,
 	}
 }
 
@@ -99,12 +94,14 @@ func Error(ctx *gin.Context, err error) {
 		ctx.Status(http.StatusOK)
 		return
 	}
+	requestid := ctx.MustGet("requestid").(string)
 	codec, _ := thttp.CodecForRequest(ctx.Request, "Accept")
 	se := fromError(err)
+	se.Requestid = requestid
 	body, err := codec.Marshal(se)
 	if err != nil {
 		ctx.JSON(http.StatusInternalServerError, &httpError{
-			Requestid: uuid.NewString(),
+			Requestid: requestid,
 			Reason:    "JSON_MARSHAL_FAILED",
 			Message:   "JSON 序列化错误",
 			Cause:     err.Error(),
@@ -123,13 +120,18 @@ func Result(ctx *gin.Context, obj any) {
 	body, err := codec.Marshal(obj)
 	if err != nil {
 		ctx.JSON(http.StatusInternalServerError, &httpError{
-			Requestid: uuid.NewString(),
+			Requestid: ctx.MustGet("requestid").(string),
 			Reason:    "JSON_MARSHAL_FAILED",
 			Message:   "JSON 序列化错误",
 			Cause:     err.Error(),
 		})
 		return
 	}
+	requestid, _ := ctx.Value("requestid").(string)
+	requestid = fmt.Sprintf("%q:%q,", "requestid", requestid)
+	body = append(body, []byte(requestid)...)
+	copy(body[1+len([]byte(requestid)):], body[1:])
+	copy(body[1:], []byte(requestid))
 	ctx.Writer.Header().Set("Content-Type", jsonContentType)
 	ctx.Writer.Write(body)
 }

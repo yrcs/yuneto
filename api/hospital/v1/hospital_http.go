@@ -29,7 +29,7 @@ type HospitalHTTPServer interface {
 	EditHospitalSetting(context.Context, *EditHospitalSettingRequest) (*CommonEditReply, error)
 	DeleteHospitalSetting(context.Context, *DeleteHospitalSettingRequest) (*emptypb.Empty, error)
 	DeleteHospitalSettings(context.Context, *DeleteHospitalSettingsRequest) (*emptypb.Empty, error)
-	LockHospitalSetting(context.Context, *LockHospitalSettingRequest) (*emptypb.Empty, error)
+	LockHospitalSetting(context.Context, *LockHospitalSettingRequest) (*CommonEditReply, error)
 }
 
 func RegisterHospitalHTTPServer(r *gin.Engine, srv HospitalHTTPServer) {

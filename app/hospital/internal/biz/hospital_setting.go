@@ -35,7 +35,7 @@ type HospitalSettingRepo interface {
 	Edit(context.Context, *HospitalSetting) (*HospitalSetting, error)
 	Delete(context.Context, *HospitalSetting) error
 	DeleteInBatches(context.Context, []uint64) error
-	Lock(context.Context, *HospitalSetting) error
+	Lock(context.Context, *HospitalSetting) (*HospitalSetting, error)
 }
 
 type HospitalSettingUsecase struct {
@@ -70,6 +70,6 @@ func (hsu *HospitalSettingUsecase) DeleteInBatches(ctx context.Context, ids []ui
 	return hsu.hsRepo.DeleteInBatches(ctx, ids)
 }
 
-func (hsu *HospitalSettingUsecase) Lock(ctx context.Context, hs *HospitalSetting) error {
+func (hsu *HospitalSettingUsecase) Lock(ctx context.Context, hs *HospitalSetting) (*HospitalSetting, error) {
 	return hsu.hsRepo.Lock(ctx, hs)
 }

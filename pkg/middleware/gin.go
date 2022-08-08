@@ -43,7 +43,7 @@ func GinMiddleware() middleware.Middleware {
 	return func(handler middleware.Handler) middleware.Handler {
 		return func(ctx context.Context, req any) (reply any, err error) {
 			if tr, ok := transport.FromServerContext(ctx); ok {
-				log.Info("operation: ", tr.Operation())
+				log.Info("endpoint: ", tr.Endpoint())
 			}
 			return handler(ctx, req)
 		}

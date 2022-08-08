@@ -18,7 +18,7 @@ service Hospital {
   rpc EditHospitalSetting(EditHospitalSettingRequest) returns (CommonEditReply);
   rpc DeleteHospitalSetting(DeleteHospitalSettingRequest) returns (google.protobuf.Empty);
   rpc DeleteHospitalSettings(DeleteHospitalSettingsRequest) returns (google.protobuf.Empty);
-  rpc LockHospitalSetting(LockHospitalSettingRequest) returns (google.protobuf.Empty);
+  rpc LockHospitalSetting(LockHospitalSettingRequest) returns (CommonEditReply);
 }
 
 message AddHospitalSettingRequest {
