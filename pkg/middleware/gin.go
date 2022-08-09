@@ -18,9 +18,7 @@ func GinMiddlewares(m ...middleware.Middleware) gin.HandlerFunc {
 		return chain(h)
 	}
 	return func(c *gin.Context) {
-		if _, exists := c.Get("Middleware"); !exists {
-			c.Set("Middleware", Middleware)
-		}
+		c.Set("Middleware", Middleware)
 		next := func(ctx context.Context, req interface{}) (interface{}, error) {
 			c.Next()
 			var err error
