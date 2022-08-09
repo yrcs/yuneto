@@ -86,11 +86,11 @@ func (r *hospitalSettingRepo) Add(ctx context.Context, hs *biz.HospitalSetting) 
 	}, nil
 }
 
-func (r *hospitalSettingRepo) Edit(ctx context.Context, hs *biz.HospitalSetting) (*biz.HospitalSetting, error) {
+func (r *hospitalSettingRepo) Edit(ctx context.Context, m map[string]any) (*biz.HospitalSetting, error) {
 	db := r.data.db.WithContext(ctx)
 
 	var hospitalSetting HospitalSetting
-	result := db.Where("id = ?", hs.Id).First(&hospitalSetting)
+	result := db.Where("id = ?", m["Id"]).First(&hospitalSetting)
 	if err := result.Error; err != nil {
 		if errors.Is(err, gorm.ErrRecordNotFound) {
 			return nil, biz.ErrHospitalSettingNotFound.WithCause(err)
@@ -99,7 +99,7 @@ func (r *hospitalSettingRepo) Edit(ctx context.Context, hs *biz.HospitalSetting)
 	}
 
 	var hospitalSettings []HospitalSetting
-	result = db.Where("id <> ?", hs.Id).Where(db.Where("name = ?", hs.Name).Or("registration_number = ?", hs.RegistrationNumber)).Find(&hospitalSettings)
+	result = db.Where("id <> ?", m["Id"]).Where(db.Where("name = ?", m["Name"]).Or("registration_number = ?", m["RegistrationNumber"])).Find(&hospitalSettings)
 	if err := result.Error; err == nil {
 		if result.RowsAffected > 0 {
 			return nil, biz.ErrHospitalSettingSameDataExists
@@ -108,16 +108,7 @@ func (r *hospitalSettingRepo) Edit(ctx context.Context, hs *biz.HospitalSetting)
 		return nil, biz.ErrHospitalSettingSystemError.WithCause(err)
 	}
 
-	result = db.Model(&hospitalSetting).Updates(
-		&HospitalSetting{
-			Name:               hs.Name,
-			RegistrationNumber: hs.RegistrationNumber,
-			ContactPerson:      hs.ContactPerson,
-			ContactMobile:      hs.ContactMobile,
-			Locked:             hs.Locked,
-			ApiUrl:             hs.ApiUrl,
-			SignatureKey:       hs.SignatureKey,
-		})
+	result = db.Model(&hospitalSetting).Omit("id").Updates(m)
 	if err := result.Error; err != nil {
 		return nil, biz.ErrHospitalSettingSystemError.WithCause(err)
 	}
@@ -156,8 +147,7 @@ func (r *hospitalSettingRepo) Lock(ctx context.Context, hs *biz.HospitalSetting)
 		}
 		return nil, biz.ErrHospitalSettingSystemError.WithCause(err)
 	}
-	result = db.Model(&hospitalSetting).Updates(
-		&HospitalSetting{Locked: hs.Locked})
+	result = db.Model(&hospitalSetting).Updates(map[string]any{"locked": hs.Locked})
 	if err := result.Error; err != nil {
 		return nil, biz.ErrHospitalSettingSystemError.WithCause(err)
 	}

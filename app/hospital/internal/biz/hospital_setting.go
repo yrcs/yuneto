@@ -32,7 +32,7 @@ type HospitalSetting struct {
 type HospitalSettingRepo interface {
 	List(context.Context, *pagination.PagingRequest) ([]*HospitalSetting, error)
 	Add(context.Context, *HospitalSetting) (*HospitalSetting, error)
-	Edit(context.Context, *HospitalSetting) (*HospitalSetting, error)
+	Edit(context.Context, map[string]any) (*HospitalSetting, error)
 	Delete(context.Context, *HospitalSetting) error
 	DeleteInBatches(context.Context, []uint64) error
 	Lock(context.Context, *HospitalSetting) (*HospitalSetting, error)
@@ -58,8 +58,8 @@ func (hsu *HospitalSettingUsecase) Add(ctx context.Context, hs *HospitalSetting)
 	return hsu.hsRepo.Add(ctx, hs)
 }
 
-func (hsu *HospitalSettingUsecase) Edit(ctx context.Context, hs *HospitalSetting) (*HospitalSetting, error) {
-	return hsu.hsRepo.Edit(ctx, hs)
+func (hsu *HospitalSettingUsecase) Edit(ctx context.Context, m map[string]any) (*HospitalSetting, error) {
+	return hsu.hsRepo.Edit(ctx, m)
 }
 
 func (hsu *HospitalSettingUsecase) Delete(ctx context.Context, hs *HospitalSetting) error {

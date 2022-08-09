@@ -5,6 +5,7 @@ import (
 
 	v1 "github.com/yrcs/yuneto/api/hospital/v1"
 	"github.com/yrcs/yuneto/app/hospital/internal/biz"
+	"github.com/yrcs/yuneto/pkg/util"
 	"github.com/yrcs/yuneto/third_party/pagination"
 	"google.golang.org/protobuf/types/known/anypb"
 	"google.golang.org/protobuf/types/known/emptypb"
@@ -60,16 +61,11 @@ func (s *HospitalService) AddHospitalSetting(ctx context.Context, req *v1.AddHos
 }
 
 func (s *HospitalService) EditHospitalSetting(ctx context.Context, req *v1.EditHospitalSettingRequest) (*v1.CommonEditReply, error) {
-	reply, err := s.hsu.Edit(ctx, &biz.HospitalSetting{
-		Id:                 req.GetId(),
-		Name:               req.GetName(),
-		RegistrationNumber: req.GetRegistrationNumber(),
-		ContactPerson:      req.GetContactPerson(),
-		ContactMobile:      req.GetContactMobile(),
-		Locked:             uint8(req.GetLocked()),
-		ApiUrl:             req.GetApiUrl(),
-		SignatureKey:       req.GetSignatureKey(),
-	})
+	m := make(map[string]any, 2)
+	m["Id"] = req.GetId()
+	util.UpdateOptionalField(req, m)
+
+	reply, err := s.hsu.Edit(ctx, m)
 	if err != nil {
 		return nil, err
 	}
