@@ -147,7 +147,7 @@ func (r *hospitalSettingRepo) Lock(ctx context.Context, hs *biz.HospitalSetting)
 		}
 		return nil, biz.ErrHospitalSettingSystemError.WithCause(err)
 	}
-	result = db.Model(&hospitalSetting).Updates(map[string]any{"locked": hs.Locked})
+	result = db.Model(&hospitalSetting).Update("locked", hs.Locked)
 	if err := result.Error; err != nil {
 		return nil, biz.ErrHospitalSettingSystemError.WithCause(err)
 	}
