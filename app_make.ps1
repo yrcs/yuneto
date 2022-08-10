@@ -23,6 +23,7 @@ switch ($stage) {
     go install github.com/go-kratos/kratos/cmd/protoc-gen-go-errors/v2
     go install github.com/envoyproxy/protoc-gen-validate@latest
     go install github.com/go-kratos/kratos/cmd/protoc-gen-go-http/v2@latest
+    go install github.com/swaggo/swag/cmd/swag
     Break
   }
 
@@ -54,6 +55,9 @@ switch ($stage) {
       --go-grpc_out=paths=source_relative:$PSScriptRoot\api\$APP_BASENAME `
       --go-http_out=paths=source_relative:$PSScriptRoot\api\$APP_BASENAME `
       $API_PROTO_FILES
+
+    swag fmt -d internal/server,$PSScriptRoot/api/$APP_BASENAME/v1 -g http.go
+    swag init -d internal/server,$PSScriptRoot/api/$APP_BASENAME/v1 --pd -g http.go -o $PSScriptRoot/api/$APP_BASENAME/v1/docs
     Break
   }
 
@@ -116,7 +120,7 @@ switch ($stage) {
     Write-Host "page`t`t`t`t" -ForegroundColor DarkGreen -NoNewline
     Write-Host "generate pagination.pb.go"
     Write-Host "api`t`t`t`t" -ForegroundColor DarkGreen -NoNewline
-    Write-Host "generate api *.pb.go"
+    Write-Host "generate api *.pb.go and docs"
     Write-Host "wire`t`t`t`t" -ForegroundColor DarkGreen -NoNewline
     Write-Host "generate wire_gen.go"
     Write-Host "test`t`t`t`t" -ForegroundColor DarkGreen -NoNewline
@@ -125,7 +129,7 @@ switch ($stage) {
     Write-Host "go build"
     Write-Host "all`t`t`t`t" -ForegroundColor DarkGreen -NoNewline
     Write-Host "generate all pb.go, wire, test and build"
-    Write-Host "container`t`t`t" -ForegroundColor DarkGreen -NoNewline
+    Write-Host "container`t`t`t" -ForegroundColor Yellow -NoNewline
     Write-Host "build container image (for WSLv2 only)"
     Write-Host "help`t`t`t`t" -ForegroundColor DarkGreen -NoNewline
     Write-Host "show help"

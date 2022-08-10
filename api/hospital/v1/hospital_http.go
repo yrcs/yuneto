@@ -33,18 +33,32 @@ type HospitalHTTPServer interface {
 }
 
 func RegisterHospitalHTTPServer(r *gin.Engine, srv HospitalHTTPServer) {
-	g1 := r.Group("/v1/admin/hospital/hospitalSettings")
+	v1 := r.Group("/v1")
 	{
-		// ?page=1&pageSize=10&query[contact_person]=宋尔卫&orderBy[name]=1&orderBy[id]=2
-		g1.GET("", ListHospitalSettingHandler(srv))
-		g1.POST("", AddHospitalSettingHandler(srv))
-		g1.PUT("/:id", EditHospitalSettingHandler(srv))
-		g1.DELETE("/:id", DeleteHospitalSettingHandler(srv))
-		g1.DELETE("", DeleteHospitalSettingsHandler(srv))
-		g1.PUT("/:id/:locked", LockHospitalSettingHandler(srv))
+		g1 := v1.Group("/admin/hospital/hospitalSettings")
+		{
+			// ?page=1&pageSize=10&query[name]=中山大学附属第一医院&orderBy[name]=1&orderBy[id]=2
+			g1.GET("", ListHospitalSettingHandler(srv))
+			g1.POST("", AddHospitalSettingHandler(srv))
+			g1.PUT("/:id", EditHospitalSettingHandler(srv))
+			g1.DELETE("/:id", DeleteHospitalSettingHandler(srv))
+			g1.DELETE("", DeleteHospitalSettingsHandler(srv))
+			g1.PUT("/:id/:locked", LockHospitalSettingHandler(srv))
+		}
 	}
 }
 
+// @Tags        获取医院设置列表
+// @Summary     医院设置列表
+// @Description 医院设置分页列表
+// @Accept      json
+// @Produce     json
+// @Param       page          query    int    false "页码"    Format(uint32)
+// @Param       pageSize      query    int    false "每页条目数" Format(uint32)
+// @Param       query[name]   query    string false "查询参数"
+// @Param       orderBy[name] query    int    false "排序参数" Enums(0, 1, 2)
+// @Success     200           {object} pagination.PagingReply
+// @Router      /admin/hospital/hospitalSettings [get]
 func ListHospitalSettingHandler(srv HospitalHTTPServer) func(ctx *gin.Context) {
 	return func(ctx *gin.Context) {
 		o := make(map[string]pagination.Order, 0)
@@ -55,7 +69,7 @@ func ListHospitalSettingHandler(srv HospitalHTTPServer) func(ctx *gin.Context) {
 		ctx.Set("reason", ErrorReason_HOSPITAL_SETTING_INVALID_ARGUMENT.String())
 		Middleware := ctx.MustGet("Middleware").(func(handler middleware.Handler) middleware.Handler)
 		h := Middleware(func(ctx context.Context, req any) (any, error) {
-			return srv.AddHospitalSetting(ctx, req.(*AddHospitalSettingRequest))
+			return srv.ListHospitalSetting(ctx, req.(*pagination.PagingRequest))
 		})
 
 		out, err := h(ctx, &in)
@@ -67,6 +81,14 @@ func ListHospitalSettingHandler(srv HospitalHTTPServer) func(ctx *gin.Context) {
 	}
 }
 
+// @Tags        添加医院设置
+// @Summary     添加设置
+// @Description 接收 json 以添加医院设置
+// @Accept      json
+// @Produce     json
+// @Param       message body     AddHospitalSettingRequest true "医院设置属性"
+// @Success     200     {object} CommonAddReply
+// @Router      /admin/hospital/hospitalSettings [post]
 func AddHospitalSettingHandler(srv HospitalHTTPServer) func(ctx *gin.Context) {
 	return func(ctx *gin.Context) {
 		var in AddHospitalSettingRequest
@@ -91,6 +113,15 @@ func AddHospitalSettingHandler(srv HospitalHTTPServer) func(ctx *gin.Context) {
 	}
 }
 
+// @Tags        编辑医院设置
+// @Summary     编辑设置
+// @Description 接收 id 与 json 以编辑医院设置
+// @Accept      json
+// @Produce     json
+// @Param       id      path     int                        true  "医院设置 id" Format(uint64)
+// @Param       message body     EditHospitalSettingRequest false "医院设置属性"
+// @Success     200    {object} CommonEditReply
+// @Router      /admin/hospital/hospitalSettings/{id} [put]
 func EditHospitalSettingHandler(srv HospitalHTTPServer) func(ctx *gin.Context) {
 	return func(ctx *gin.Context) {
 		id, _ := strconv.Atoi(ctx.Param("id"))
@@ -116,6 +147,14 @@ func EditHospitalSettingHandler(srv HospitalHTTPServer) func(ctx *gin.Context) {
 	}
 }
 
+// @Tags        删除医院设置
+// @Summary     删除设置
+// @Description 接收 id 以删除医院设置
+// @Accept      json
+// @Produce     json
+// @Param       id path int true "医院设置 id" Format(uint64)
+// @Success     200
+// @Router      /admin/hospital/hospitalSettings/{id} [delete]
 func DeleteHospitalSettingHandler(srv HospitalHTTPServer) func(ctx *gin.Context) {
 	return func(ctx *gin.Context) {
 		id, _ := strconv.Atoi(ctx.Param("id"))
@@ -136,6 +175,14 @@ func DeleteHospitalSettingHandler(srv HospitalHTTPServer) func(ctx *gin.Context)
 	}
 }
 
+// @Tags        批量删除医院设置
+// @Summary     批量删除设置
+// @Description 接收 json 以批量删除医院设置
+// @Accept      json
+// @Produce     json
+// @Param       message body DeleteHospitalSettingsRequest true "医院设置 id 数组"
+// @Success     200
+// @Router      /admin/hospital/hospitalSettings [delete]
 func DeleteHospitalSettingsHandler(srv HospitalHTTPServer) func(ctx *gin.Context) {
 	return func(ctx *gin.Context) {
 		var in DeleteHospitalSettingsRequest
@@ -160,6 +207,15 @@ func DeleteHospitalSettingsHandler(srv HospitalHTTPServer) func(ctx *gin.Context
 	}
 }
 
+// @Tags        锁定/解锁医院设置
+// @Summary     锁定/解锁设置
+// @Description 接收 id 与 locked 以锁定/解锁医院设置
+// @Accept      json
+// @Produce     json
+// @Param       id     path     int true "锁定/解锁医院设置" Format(uint64)
+// @Param       locked path     int true "锁定/解锁状态"   Enums(0, 1)
+// @Success     200     {object} CommonEditReply
+// @Router      /admin/hospital/hospitalSettings/{id}/{locked} [put]
 func LockHospitalSettingHandler(srv HospitalHTTPServer) func(ctx *gin.Context) {
 	return func(ctx *gin.Context) {
 		id, _ := strconv.Atoi(ctx.Param("id"))

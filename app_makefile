@@ -18,6 +18,7 @@ init:
 	go install github.com/go-kratos/kratos/cmd/protoc-gen-go-errors/v2
 	go install github.com/envoyproxy/protoc-gen-validate@latest
 	go install github.com/go-kratos/kratos/cmd/protoc-gen-go-http/v2@latest
+	go install github.com/swaggo/swag/cmd/swag
 
 .PHONY: config
 # generate internal conf.pb.go
@@ -36,7 +37,7 @@ page:
 	../../third_party/third_party/pagination/pagination.proto
 
 .PHONY: api
-# generate api *.pb.go
+# generate api *.pb.go and docs
 api:
 	cd ../../api/$(APP_BASENAME) && protoc --proto_path=. \
 	--proto_path=../../third_party \
@@ -46,6 +47,8 @@ api:
 	--go-grpc_out=paths=source_relative:. \
 	--go-http_out=paths=source_relative:. \
 	$(API_PROTO_FILES)
+	swag fmt -d internal/server,../../api/$(APP_BASENAME)/v1 -g http.go
+	swag init -d internal/server,../../api/$(APP_BASENAME)/v1 --pd -g http.go -o ../../api/$(APP_BASENAME)/v1/docs
 
 .PHONY: wire
 # wire
