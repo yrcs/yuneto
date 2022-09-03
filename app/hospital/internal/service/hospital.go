@@ -3,8 +3,10 @@ package service
 import (
 	"context"
 
+	"github.com/bwmarrin/snowflake"
 	v1 "github.com/yrcs/yuneto/api/hospital/v1"
 	"github.com/yrcs/yuneto/app/hospital/internal/biz"
+	"github.com/yrcs/yuneto/app/hospital/internal/pkg/do"
 	"github.com/yrcs/yuneto/pkg/util"
 	"github.com/yrcs/yuneto/third_party/pagination"
 	"google.golang.org/protobuf/types/known/anypb"
@@ -15,7 +17,7 @@ import (
 func (s *HospitalService) ListHospitalSetting(ctx context.Context, req *pagination.PagingRequest) (*pagination.PagingReply, error) {
 	reply, err := s.hsu.List(ctx, req)
 	if err != nil {
-		return nil, err
+		return nil, biz.ErrHospitalSettingSystemError.WithCause(err)
 	}
 	items := make([]*anypb.Any, 0)
 	for _, hs := range reply {
@@ -41,7 +43,25 @@ func (s *HospitalService) ListHospitalSetting(ctx context.Context, req *paginati
 }
 
 func (s *HospitalService) AddHospitalSetting(ctx context.Context, req *v1.AddHospitalSettingRequest) (*v1.CommonAddReply, error) {
-	reply, err := s.hsu.Add(ctx, &biz.HospitalSetting{
+	var (
+		err                                  error
+		nameExists, registrationNumberExists bool
+		reply                                *do.HospitalSetting
+	)
+
+	if nameExists, err = s.hsu.NameExists(ctx, req.GetName()); err != nil {
+		return nil, biz.ErrHospitalSettingSystemError.WithCause(err)
+	}
+	if registrationNumberExists, err = s.hsu.RegistrationNumberExists(ctx, req.GetRegistrationNumber()); err != nil {
+		return nil, biz.ErrHospitalSettingSystemError.WithCause(err)
+	}
+	if nameExists || registrationNumberExists {
+		return nil, biz.ErrHospitalSettingSameDataExists
+	}
+
+	node, _ := snowflake.NewNode(1)
+	reply, err = s.hsu.Add(ctx, &do.HospitalSetting{
+		Id:                 uint64(node.Generate().Int64()),
 		Name:               req.GetName(),
 		RegistrationNumber: req.GetRegistrationNumber(),
 		ContactPerson:      req.GetContactPerson(),
@@ -65,9 +85,25 @@ func (s *HospitalService) EditHospitalSetting(ctx context.Context, req *v1.EditH
 	m["Id"] = req.GetId()
 	util.UpdateOptionalField(req, m)
 
-	reply, err := s.hsu.Edit(ctx, m)
+	var (
+		err                                  error
+		nameUnique, registrationNumberUnique bool
+		reply                                *do.HospitalSetting
+	)
+
+	if nameUnique, err = s.hsu.NameUnique(ctx, req.GetId(), req.GetName()); err != nil {
+		return nil, biz.ErrHospitalSettingSystemError.WithCause(err)
+	}
+	if registrationNumberUnique, err = s.hsu.RegistrationNumberUnique(ctx, req.GetId(), req.GetRegistrationNumber()); err != nil {
+		return nil, biz.ErrHospitalSettingSystemError.WithCause(err)
+	}
+	if !nameUnique || !registrationNumberUnique {
+		return nil, biz.ErrHospitalSettingSameDataExists
+	}
+
+	reply, err = s.hsu.Edit(ctx, m)
 	if err != nil {
-		return nil, err
+		return nil, biz.ErrHospitalSettingSystemError.WithCause(err)
 	}
 	return &v1.CommonEditReply{
 		Id:        reply.Id,
@@ -76,30 +112,30 @@ func (s *HospitalService) EditHospitalSetting(ctx context.Context, req *v1.EditH
 }
 
 func (s *HospitalService) DeleteHospitalSetting(ctx context.Context, req *v1.DeleteHospitalSettingRequest) (*emptypb.Empty, error) {
-	err := s.hsu.Delete(ctx, &biz.HospitalSetting{
-		Id: req.GetId(),
-	})
+	err := s.hsu.Delete(ctx, req.GetId())
 	if err != nil {
-		return nil, err
+		return nil, biz.ErrHospitalSettingSystemError.WithCause(err)
 	}
 	return nil, nil
 }
 
 func (s *HospitalService) DeleteHospitalSettings(ctx context.Context, req *v1.DeleteHospitalSettingsRequest) (*emptypb.Empty, error) {
-	err := s.hsu.DeleteInBatches(ctx, req.GetIds())
-	if err != nil {
-		return nil, err
+	if err := s.hsu.DeleteByIDs(ctx, req.GetIds()); err != nil {
+		return nil, biz.ErrHospitalSettingSystemError.WithCause(err)
 	}
 	return nil, nil
 }
 
 func (s *HospitalService) LockHospitalSetting(ctx context.Context, req *v1.LockHospitalSettingRequest) (*v1.CommonEditReply, error) {
-	reply, err := s.hsu.Lock(ctx, &biz.HospitalSetting{
-		Id:     req.GetId(),
-		Locked: uint8(req.GetLocked()),
-	})
+	m := make(map[string]any, 2)
+	m["Id"] = req.GetId()
+	m["Locked"] = req.GetLocked()
+
+	reply, err := s.hsu.Edit(ctx, m)
 	if err != nil {
-		return nil, err
+		return nil, biz.ErrHospitalSettingSystemError.WithCause(err)
+	} else if reply == nil {
+		return nil, biz.ErrHospitalSettingNotFound.WithCause(err)
 	}
 	return &v1.CommonEditReply{
 		Id:        reply.Id,

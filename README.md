@@ -1,11 +1,15 @@
 # YunETO (云医通) 
 The Cloud-Native Online Appointment Patient Registration System.
 
+## ENV
+
+OS: Linux (Recommend AnolisOS v8.6⁺), macOS, Windows 11.
+
+Go: **Must ≧ v1.19⁺** (Because this project uses **Go Generics**).
+
+Other major requirements: Kratos v2.5.0⁺, Gin v1.8.1⁺, GORM v1.23.8⁺, Mariadb v10.6.8⁺, Podman v3.4.2⁺, CRI-O v1.24.1⁺.
+
 ## Usage
-
-OS: Linux (Recommend AnolisOS v8.6⁺ and any other CentOS8-compatible OS), macOS, Windows 11.
-
-Requires Go v1.19⁺, Kratos v2.4.1⁺, Gin v1.8.1⁺, GORM v1.23.8⁺, Mariadb v10.6.8⁺, Podman v3.4.2⁺, CRI-O v1.24.1⁺.
 
 Run this project:
 

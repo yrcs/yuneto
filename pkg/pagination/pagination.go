@@ -31,7 +31,7 @@ func PackPagingData(ctx *gin.Context, req *pagination.PagingRequest) {
 
 func Paginate(req *pagination.PagingRequest) func(db *gorm.DB) *gorm.DB {
 	return func(db *gorm.DB) *gorm.DB {
-		db = db.Where("deleted_at IS NULL").Where(req.GetQuery())
+		db = db.Where("DeletedAt IS NULL").Where(req.GetQuery())
 		for k, v := range req.OrderBy {
 			db = db.Order(k + " " + pagination.Order_name[int32(v.Number())])
 		}

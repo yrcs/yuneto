@@ -1,11 +1,14 @@
 package data
 
 import (
+	"context"
 	"time"
 
 	"github.com/go-kratos/kratos/v2/log"
 	"github.com/google/wire"
+	"github.com/yrcs/yuneto/app/hospital/internal/biz"
 	"github.com/yrcs/yuneto/app/hospital/internal/conf"
+	"github.com/yrcs/yuneto/app/hospital/internal/pkg/po"
 	"gorm.io/driver/mysql"
 	"gorm.io/gorm"
 	gl "gorm.io/gorm/logger"
@@ -13,7 +16,7 @@ import (
 )
 
 // ProviderSet is data providers.
-var ProviderSet = wire.NewSet(NewDB, NewData, NewHospitalSettingRepo)
+var ProviderSet = wire.NewSet(NewDB, NewData, NewTransaction, NewHospitalSettingRepo)
 
 // Data .
 type Data struct {
@@ -21,18 +24,40 @@ type Data struct {
 	log *log.Helper
 }
 
+type contextTxKey struct{}
+
+func (d *Data) InTx(ctx context.Context, fn func(ctx context.Context) error) error {
+	return d.db.WithContext(ctx).Transaction(func(tx *gorm.DB) error {
+		ctx = context.WithValue(ctx, contextTxKey{}, tx)
+		return fn(ctx)
+	})
+}
+
+func (d *Data) DB(ctx context.Context) *gorm.DB {
+	tx, ok := ctx.Value(contextTxKey{}).(*gorm.DB)
+	if ok {
+		return tx
+	}
+	return d.db
+}
+
+// NewTransaction .
+func NewTransaction(d *Data) biz.Transaction {
+	return d
+}
+
 // NewDB
 func NewDB(conf *conf.Data, logger log.Logger) *gorm.DB {
 	log := log.NewHelper(log.With(logger, "module", "hospital/data/db"))
 
 	db, err := gorm.Open(mysql.New(mysql.Config{
-		DSN:                       conf.Database.Source, // DSN data source name
+		DSN:                       conf.Database.Source, // DSN (data source name)
 		DefaultStringSize:         256,                  // Default length of a string type field
 		DisableDatetimePrecision:  true,                 // Disable datetime precision, not supported before MySQL 5.6
 		SkipInitializeWithVersion: false,                // Automatic configuration based on current MySQL version
 	}), &gorm.Config{
 		Logger:                                   gl.Default.LogMode(gl.Info),
-		NamingStrategy:                           schema.NamingStrategy{SingularTable: true},
+		NamingStrategy:                           schema.NamingStrategy{SingularTable: true, NoLowerCase: true},
 		DisableForeignKeyConstraintWhenMigrating: true,
 		SkipDefaultTransaction:                   true,
 		PrepareStmt:                              true,
@@ -42,7 +67,7 @@ func NewDB(conf *conf.Data, logger log.Logger) *gorm.DB {
 		log.Fatalf("Failed opening connection to mysql: %v", err)
 	}
 
-	if err = db.Set("gorm:table_options", "ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='医院设置表'").AutoMigrate(&HospitalSetting{}); err != nil {
+	if err = db.Set("gorm:table_options", "ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='医院设置表'").AutoMigrate(&po.HospitalSetting{}); err != nil {
 		log.Fatal(err)
 	}
 
