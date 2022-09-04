@@ -21,7 +21,7 @@ type Repo[E, T any] interface {
 	Unique(ctx context.Context, id uint64, fieldName string, fieldValue any, ignoreCase ...bool) (bool, error)
 	// Find find po by id (with lockMode).
 	Find(ctx context.Context, id uint64, lockMode ...LockMode) (E, error)
-	// FindByField find po by fieldName and fieldValue (with ignoreCase or lockMode).
+	// FindByField find po by fieldName and fieldValue (with ignoreCase and/or lockMode).
 	FindByField(ctx context.Context, fieldName string, fieldValue any, args ...any) (E, error)
 	// Create create po.
 	Create(ctx context.Context, do E) (E, error)
@@ -29,7 +29,7 @@ type Repo[E, T any] interface {
 	Update(ctx context.Context, m map[string]any) (E, error)
 	// Delete delete po.
 	Delete(ctx context.Context, id uint64) error
-	// Delete delete pos.
+	// DeleteByIDs delete pos.
 	DeleteByIDs(ctx context.Context, ids []uint64) error
 }
 
@@ -166,11 +166,9 @@ func (r *BaseRepo[E, T]) Update(ctx context.Context, m map[string]any) (E, error
 		}
 		return zero, err
 	}
-
 	result = r.DB.WithContext(ctx).Model(r.PO).Omit("Id").Updates(m)
 	r.DO = util.InitStruct(r.DO)
 	copier.CopyWithOption(r.DO, r.PO, copier.Option{IgnoreEmpty: true, DeepCopy: true})
-
 	return r.DO, result.Error
 }
 

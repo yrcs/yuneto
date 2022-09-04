@@ -15,23 +15,23 @@ func UpdateOptionalField(protoReq any, m map[string]any) {
 		field := v.Type().Field(i)
 		fv := v.FieldByName(field.Name)
 		if !fv.IsNil() {
-			switch fv.Interface().(type) {
+			switch fv := fv.Interface().(type) {
 			case *string:
-				m[field.Name] = *fv.Interface().(*string)
+				m[field.Name] = *fv
 			case *bool:
-				m[field.Name] = *fv.Interface().(*bool)
+				m[field.Name] = *fv
 			case *uint32:
-				m[field.Name] = *fv.Interface().(*uint32)
+				m[field.Name] = *fv
 			case *uint64:
-				m[field.Name] = *fv.Interface().(*uint64)
+				m[field.Name] = *fv
 			case *int32:
-				m[field.Name] = *fv.Interface().(*int32)
+				m[field.Name] = *fv
 			case *int64:
-				m[field.Name] = *fv.Interface().(*int64)
+				m[field.Name] = *fv
 			case *float32:
-				m[field.Name] = *fv.Interface().(*float32)
+				m[field.Name] = *fv
 			case *float64:
-				m[field.Name] = *fv.Interface().(*float64)
+				m[field.Name] = *fv
 			}
 		}
 	}

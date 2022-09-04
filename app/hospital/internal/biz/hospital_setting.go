@@ -19,58 +19,47 @@ var (
 	ErrHospitalSettingSystemError    = errors.InternalServer(v1.ErrorReason_HOSPITAL_SETTING_SYSTEM_ERROR.String(), "系统错误")
 )
 
-type doHS interface {
-	~*do.HospitalSetting
-}
+type E *do.HospitalSetting
+type T *po.HospitalSetting
 
-type poHS interface {
-	~*po.HospitalSetting
-}
-
-type HospitalSettingRepo[E doHS, T poHS] interface {
+type HospitalSettingRepo interface {
 	repo.Repo[E, T]
+	InitRepo() *repo.BaseRepo[E, T]
 	List(context.Context, *pagination.PagingRequest) ([]E, error)
 }
 
-type HospitalSettingUsecase[E doHS, T poHS] struct {
+type HospitalSettingUsecase struct {
 	usecase.BaseUsecase[E, T]
-	hsRepo HospitalSettingRepo[E, T]
+	hsRepo HospitalSettingRepo
 	tm     Transaction
 	log    *log.Helper
 }
 
-type E *do.HospitalSetting
-type T *po.HospitalSetting
-
-func NewHospitalSettingUsecase(repo *repo.BaseRepo[E, T],
-	hsRepo HospitalSettingRepo[E, T],
-	tm Transaction,
-	logger log.Logger,
-) *HospitalSettingUsecase[E, T] {
-	return &HospitalSettingUsecase[E, T]{
-		BaseUsecase: usecase.BaseUsecase[E, T]{Repo: repo},
+func NewHospitalSettingUsecase(hsRepo HospitalSettingRepo, tm Transaction, logger log.Logger) *HospitalSettingUsecase {
+	return &HospitalSettingUsecase{
 		hsRepo:      hsRepo,
+		BaseUsecase: usecase.BaseUsecase[E, T]{Repo: hsRepo.InitRepo()},
 		tm:          tm,
 		log:         log.NewHelper(log.With(logger, "module", "hospital/biz/HospitalSettingUsecase")),
 	}
 }
 
-func (hsu *HospitalSettingUsecase[E, T]) NameExists(ctx context.Context, name string) (bool, error) {
+func (hsu *HospitalSettingUsecase) NameExists(ctx context.Context, name string) (bool, error) {
 	return hsu.hsRepo.Exists(ctx, "Name", name)
 }
 
-func (hsu *HospitalSettingUsecase[E, T]) RegistrationNumberExists(ctx context.Context, registrationNumber string) (bool, error) {
+func (hsu *HospitalSettingUsecase) RegistrationNumberExists(ctx context.Context, registrationNumber string) (bool, error) {
 	return hsu.hsRepo.Exists(ctx, "RegistrationNumber", registrationNumber, true)
 }
 
-func (hsu *HospitalSettingUsecase[E, T]) NameUnique(ctx context.Context, id uint64, name string) (bool, error) {
+func (hsu *HospitalSettingUsecase) NameUnique(ctx context.Context, id uint64, name string) (bool, error) {
 	return hsu.hsRepo.Unique(ctx, id, "Name", name)
 }
 
-func (hsu *HospitalSettingUsecase[E, T]) RegistrationNumberUnique(ctx context.Context, id uint64, registrationNumber string) (bool, error) {
+func (hsu *HospitalSettingUsecase) RegistrationNumberUnique(ctx context.Context, id uint64, registrationNumber string) (bool, error) {
 	return hsu.hsRepo.Unique(ctx, id, "RegistrationNumber", registrationNumber, true)
 }
 
-func (hsu *HospitalSettingUsecase[E, T]) List(ctx context.Context, req *pagination.PagingRequest) ([]E, error) {
+func (hsu *HospitalSettingUsecase) List(ctx context.Context, req *pagination.PagingRequest) ([]E, error) {
 	return hsu.hsRepo.List(ctx, req)
 }

@@ -21,14 +21,13 @@ import (
 // wireApp init kratos application.
 func wireApp(confServer *conf.Server, confData *conf.Data, logger log.Logger) (*kratos.App, func(), error) {
 	db := data.NewDB(confData, logger)
-	baseRepo := biz.NewBaseRepo(db, logger)
 	dataData, cleanup, err := data.NewData(db, logger)
 	if err != nil {
 		return nil, nil, err
 	}
 	hospitalSettingRepo := data.NewHospitalSettingRepo(dataData, logger)
 	transaction := data.NewTransaction(dataData)
-	hospitalSettingUsecase := biz.NewHospitalSettingUsecase(baseRepo, hospitalSettingRepo, transaction, logger)
+	hospitalSettingUsecase := biz.NewHospitalSettingUsecase(hospitalSettingRepo, transaction, logger)
 	hospitalService := service.NewHospitalService(hospitalSettingUsecase, logger)
 	grpcServer := server.NewGRPCServer(confServer, hospitalService, logger)
 	httpServer := server.NewHTTPServer(confServer, hospitalService, logger)

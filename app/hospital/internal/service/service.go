@@ -13,11 +13,11 @@ var ProviderSet = wire.NewSet(NewHospitalService)
 type HospitalService struct {
 	v1.UnimplementedHospitalServer
 
-	hsu *biz.HospitalSettingUsecase[biz.E, biz.T]
+	hsu *biz.HospitalSettingUsecase
 	log *log.Helper
 }
 
-func NewHospitalService(hsu *biz.HospitalSettingUsecase[biz.E, biz.T], logger log.Logger) *HospitalService {
+func NewHospitalService(hsu *biz.HospitalSettingUsecase, logger log.Logger) *HospitalService {
 	return &HospitalService{
 		hsu: hsu,
 		log: log.NewHelper(log.With(logger, "module", "hospital/service")),

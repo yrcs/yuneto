@@ -27,7 +27,7 @@ var (
 
 	logger klog.Logger
 	tm     biz.Transaction
-	hsu    *biz.HospitalSettingUsecase[biz.E, biz.T]
+	hsu    *biz.HospitalSettingUsecase
 )
 
 func suiteSetUp(suiteName string) func() {
@@ -43,9 +43,8 @@ func suiteSetUp(suiteName string) func() {
 		log.Fatalf("Failed to new data, but got error %v", err)
 	}
 	hsr := data.NewHospitalSettingRepo(dat, logger)
-	repo := &repo.BaseRepo[biz.E, biz.T]{DB: db}
 	tm = data.NewTransaction(dat)
-	hsu = biz.NewHospitalSettingUsecase(repo, hsr, tm, logger)
+	hsu = biz.NewHospitalSettingUsecase(hsr, tm, logger)
 	return func() {
 		log.Printf("\ttearDown fixture for suite %s\n", suiteName)
 	}
