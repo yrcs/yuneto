@@ -5,8 +5,6 @@ import (
 
 	"github.com/go-kratos/kratos/v2/log"
 	"github.com/google/wire"
-	"github.com/yrcs/yuneto/app/hospital/internal/pkg/do"
-	"github.com/yrcs/yuneto/app/hospital/internal/pkg/po"
 	"github.com/yrcs/yuneto/pkg/repo"
 	"gorm.io/gorm"
 )
@@ -14,8 +12,8 @@ import (
 // ProviderSet is biz providers.
 var ProviderSet = wire.NewSet(NewBaseRepo, NewHospitalSettingUsecase)
 
-func NewBaseRepo(db *gorm.DB, logger log.Logger) *repo.BaseRepo[*do.HospitalSetting, *po.HospitalSetting] {
-	return &repo.BaseRepo[*do.HospitalSetting, *po.HospitalSetting]{
+func NewBaseRepo(db *gorm.DB, logger log.Logger) *repo.BaseRepo[E, T] {
+	return &repo.BaseRepo[E, T]{
 		DB:  db,
 		Log: log.NewHelper(log.With(logger, "module", "hospital/biz/NewBaseRepo")),
 	}

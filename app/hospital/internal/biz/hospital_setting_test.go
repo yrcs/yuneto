@@ -27,7 +27,7 @@ var (
 
 	logger klog.Logger
 	tm     biz.Transaction
-	hsu    *biz.HospitalSettingUsecase[*do.HospitalSetting, *po.HospitalSetting]
+	hsu    *biz.HospitalSettingUsecase[biz.E, biz.T]
 )
 
 func suiteSetUp(suiteName string) func() {
@@ -43,7 +43,7 @@ func suiteSetUp(suiteName string) func() {
 		log.Fatalf("Failed to new data, but got error %v", err)
 	}
 	hsr := data.NewHospitalSettingRepo(dat, logger)
-	repo := &repo.BaseRepo[*do.HospitalSetting, *po.HospitalSetting]{DB: db}
+	repo := &repo.BaseRepo[biz.E, biz.T]{DB: db}
 	tm = data.NewTransaction(dat)
 	hsu = biz.NewHospitalSettingUsecase(repo, hsr, tm, logger)
 	return func() {
@@ -54,7 +54,7 @@ func suiteSetUp(suiteName string) func() {
 func TestAdd(t *testing.T) {
 	t.Cleanup(suiteSetUp(t.Name()))
 	hs := do.HospitalSetting{
-		Id:                 1564806232458399744,
+		Id:                 1553670574587252736,
 		Name:               "中山大学附属第一医院",
 		RegistrationNumber: "350002440102150131",
 		ContactPerson:      "肖海鹏",
@@ -92,7 +92,7 @@ func TestExists(t *testing.T) {
 
 func TestUnique(t *testing.T) {
 	t.Cleanup(suiteSetUp(t.Name()))
-	id := uint64(1564806232458399744)
+	id := uint64(1553670574587252736)
 	t.Run("testNameUnique", func(t *testing.T) {
 		name := "中山大学附属第一医院"
 		if unique, err := hsu.NameUnique(context.TODO(), id, name); err != nil {
@@ -116,7 +116,7 @@ func TestFind(t *testing.T) {
 	t.Run("testFind", func(t *testing.T) {
 		var (
 			err error
-			id  = uint64(1564806232458399744)
+			id  = uint64(1553670574587252736)
 			hs  *do.HospitalSetting
 		)
 		tm.InTx(context.TODO(), func(ctx context.Context) error {
@@ -155,7 +155,7 @@ func TestFind(t *testing.T) {
 func TestEdit(t *testing.T) {
 	t.Cleanup(suiteSetUp(t.Name()))
 	m := make(map[string]any, 2)
-	m["Id"] = 1564806232458399744
+	m["Id"] = 1553670574587252736
 	m["ContactMobile"] = "16602000088"
 	t.Run("testEdit", func(t *testing.T) {
 		if do, err := hsu.Edit(context.TODO(), m); err != nil {
@@ -168,7 +168,7 @@ func TestEdit(t *testing.T) {
 
 func TestDelete(t *testing.T) {
 	t.Cleanup(suiteSetUp(t.Name()))
-	id := uint64(1564806232458399744)
+	id := uint64(1553670574587252736)
 	t.Run("testDelete", func(t *testing.T) {
 		if err := hsu.Delete(context.TODO(), id); err != nil {
 			t.Errorf("Failed to delete hospital setting, but got error %v", err)
@@ -222,13 +222,13 @@ func TestMain(m *testing.M) {
 
 func runMigrations() {
 	var err error
-	allModels := []any{&do.HospitalSetting{}}
+	allModels := []any{&po.HospitalSetting{}}
 	rand.Seed(time.Now().UnixNano())
 	rand.Shuffle(len(allModels), func(i, j int) { allModels[i], allModels[j] = allModels[j], allModels[i] })
 
-	if err = db.Migrator().DropTable(allModels...); err != nil {
-		log.Fatalf("Failed to drop table, but got error %v\n", err)
-	}
+	// if err = db.Migrator().DropTable(allModels...); err != nil {
+	// 	log.Fatalf("Failed to drop table, but got error %v\n", err)
+	// }
 
 	if err = db.Set("gorm:table_options", "ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci").AutoMigrate(allModels...); err != nil {
 		log.Fatalf("Failed to auto migrate, but got error %v\n", err)

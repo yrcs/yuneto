@@ -19,25 +19,36 @@ var (
 	ErrHospitalSettingSystemError    = errors.InternalServer(v1.ErrorReason_HOSPITAL_SETTING_SYSTEM_ERROR.String(), "系统错误")
 )
 
-type HospitalSettingRepo[E *do.HospitalSetting, T *po.HospitalSetting] interface {
+type doHS interface {
+	~*do.HospitalSetting
+}
+
+type poHS interface {
+	~*po.HospitalSetting
+}
+
+type HospitalSettingRepo[E doHS, T poHS] interface {
 	repo.Repo[E, T]
 	List(context.Context, *pagination.PagingRequest) ([]E, error)
 }
 
-type HospitalSettingUsecase[E *do.HospitalSetting, T *po.HospitalSetting] struct {
+type HospitalSettingUsecase[E doHS, T poHS] struct {
 	usecase.BaseUsecase[E, T]
 	hsRepo HospitalSettingRepo[E, T]
 	tm     Transaction
 	log    *log.Helper
 }
 
-func NewHospitalSettingUsecase(repo *repo.BaseRepo[*do.HospitalSetting, *po.HospitalSetting],
-	hsRepo HospitalSettingRepo[*do.HospitalSetting, *po.HospitalSetting],
+type E *do.HospitalSetting
+type T *po.HospitalSetting
+
+func NewHospitalSettingUsecase(repo *repo.BaseRepo[E, T],
+	hsRepo HospitalSettingRepo[E, T],
 	tm Transaction,
 	logger log.Logger,
-) *HospitalSettingUsecase[*do.HospitalSetting, *po.HospitalSetting] {
-	return &HospitalSettingUsecase[*do.HospitalSetting, *po.HospitalSetting]{
-		BaseUsecase: usecase.BaseUsecase[*do.HospitalSetting, *po.HospitalSetting]{Repo: repo},
+) *HospitalSettingUsecase[E, T] {
+	return &HospitalSettingUsecase[E, T]{
+		BaseUsecase: usecase.BaseUsecase[E, T]{Repo: repo},
 		hsRepo:      hsRepo,
 		tm:          tm,
 		log:         log.NewHelper(log.With(logger, "module", "hospital/biz/HospitalSettingUsecase")),
