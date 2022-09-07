@@ -1,0 +1,14 @@
+syntax = "proto3";
+
+package dict.v1;
+
+option go_package = "github.com/yrcs/yuneto/api/dict/v1;v1";
+option java_multiple_files = true;
+option java_package = "dev.yuneto.api.dict.v1";
+option java_outer_classname = "ErrorReasonProto";
+
+enum ErrorReason {
+  DICT_INVALID_DATA_FORMAT = 0;
+  DICT_INVALID_ARGUMENT = 1;
+  DICT_SYSTEM_ERROR = 2;
+}

@@ -1,0 +1,78 @@
+definitions:
+  timestamppb.Timestamp:
+    properties:
+      nanos:
+        description: |-
+          Non-negative fractions of a second at nanosecond resolution. Negative
+          second values with fractions must still have non-negative nanos values
+          that count forward in time. Must be from 0 to 999,999,999
+          inclusive.
+        type: integer
+      seconds:
+        description: |-
+          Represents seconds of UTC time since Unix epoch
+          1970-01-01T00:00:00Z. Must be from 0001-01-01T00:00:00Z to
+          9999-12-31T23:59:59Z inclusive.
+        type: integer
+    type: object
+  v1.ListChildrenReply:
+    properties:
+      items:
+        items:
+          $ref: '#/definitions/v1.ListChildrenReply_Dict'
+        type: array
+    type: object
+  v1.ListChildrenReply_Dict:
+    properties:
+      createdAt:
+        $ref: '#/definitions/timestamppb.Timestamp'
+      dictCode:
+        type: string
+      hasChildren:
+        type: boolean
+      id:
+        type: integer
+      name:
+        type: string
+      parentId:
+        type: integer
+      updatedAt:
+        $ref: '#/definitions/timestamppb.Timestamp'
+      value:
+        type: string
+    type: object
+host: localhost:8000
+info:
+  contact: {}
+  description: 本文档描述了后台管理系统微服务接口定义。
+  license:
+    name: Apache 2.0
+    url: http://www.apache.org/licenses/LICENSE-2.0.html
+  title: YunETO (云医通) 后台管理系统 API
+  version: "1.0"
+paths:
+  /admin/datadict/dicts/{id}:
+    get:
+      consumes:
+      - application/json
+      description: 获取指定父级 ID 的子级列表
+      parameters:
+      - description: 父级 id
+        format: uint64
+        in: path
+        name: id
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            items:
+              $ref: '#/definitions/v1.ListChildrenReply'
+            type: array
+      summary: 子级列表
+      tags:
+      - 获取子级列表
+swagger: "2.0"

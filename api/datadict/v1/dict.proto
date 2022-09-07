@@ -1,0 +1,33 @@
+syntax = "proto3";
+
+package dict.v1;
+
+option go_package = "github.com/yrcs/yuneto/api/dict/v1;v1";
+option java_multiple_files = true;
+option java_package = "dev.yuneto.api.dict.v1";
+option java_outer_classname = "DictProto";
+
+import "google/protobuf/timestamp.proto";
+import "validate/validate.proto";
+
+service DataDict {
+  rpc ListChildren(ListChildrenRequest) returns (ListChildrenReply);
+}
+
+message ListChildrenRequest {
+  uint64 id = 1 [(validate.rules).uint64.gt = 0];
+}
+
+message ListChildrenReply {
+  message Dict {
+    uint64 id = 1;
+    google.protobuf.Timestamp createdAt = 2;
+    google.protobuf.Timestamp updatedAt = 3;
+    uint64 parentId = 4;
+    string name = 5;
+    string value = 6;
+    string dictCode = 7;
+    bool hasChildren = 8;
+  }
+  repeated Dict items = 1;
+}
